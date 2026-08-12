@@ -1,0 +1,18 @@
+{
+  "name": "reactivation_wati_intermediate_campgins",
+  "version": "1.0.0",
+  "description": "WATI webhook receiver + leads dashboard for the reactivation campaign",
+  "private": true,
+  "scripts": {
+    "dev": "node webhook-server.js",
+    "indexes": "node scripts/ensure-indexes.js",
+    "dedupe": "node _dedupe.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^7.5.0"
+  }
+}

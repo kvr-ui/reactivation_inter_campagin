@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leads — LAST ATTEMPT</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #f5f6f8;
+    color: #1f2328;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    color: #656d76;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  input[type=search] {
+    flex: 1;
+    padding: 8px 11px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    outline: none;
+    background: #fff;
+  }
+  input[type=search]:focus {
+    border-color: #0969da;
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, .12);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background: #fff;
+    color: #1f2328;
+    cursor: pointer;
+  }
+  button:hover { background: #f3f4f6; }
+
+  .card {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #656d76;
+    padding: 10px 14px;
+    background: #f6f8fa;
+    border-bottom: 1px solid #d0d7de;
+  }
+
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #eaeef2;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #f6f8fa; }
+
+  .name { font-weight: 500; }
+  .name.unknown { color: #8c959f; font-style: italic; font-weight: 400; }
+
+  .phone {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+  }
+
+  .date {
+    color: #656d76;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  td.actions { text-align: right; width: 1%; }
+
+  .btns {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  .copy {
+    font-size: 12px;
+    padding: 5px 10px;
+    min-width: 68px;
+  }
+  .copy.done {
+    background: #dafbe1;
+    border-color: #a0d8ab;
+    color: #1a7f37;
+  }
+  .copy.fail {
+    background: #ffebe9;
+    border-color: #ffb3ad;
+    color: #cf222e;
+  }
+
+  .del {
+    font-size: 12px;
+    padding: 5px 10px;
+    min-width: 68px;
+    color: #cf222e;
+  }
+  .del:hover {
+    background: #ffebe9;
+    border-color: #ffb3ad;
+  }
+  .del:disabled {
+    opacity: .55;
+    cursor: default;
+    background: #fff;
+  }
+
+  .empty {
+    padding: 44px 16px;
+    text-align: center;
+    color: #656d76;
+  }
+
+  .error {
+    background: #ffebe9;
+    border: 1px solid #ffb3ad;
+    color: #cf222e;
+    border-radius: 6px;
+    padding: 10px 13px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+
+  .footer {
+    margin-top: 12px;
+    color: #8c959f;
+    font-size: 12px;
+  }
+
+  /* Both tick columns: the left one selects, the "Done" one persists. */
+  th.tick, td.tick {
+    width: 1%;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 14px;
+    padding-right: 6px;
+  }
+
+  input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    vertical-align: middle;
+    accent-color: #0969da;
+    cursor: pointer;
+  }
+  input[type=checkbox]:disabled { cursor: default; opacity: .5; }
+
+  /* A contacted lead stays readable but visibly settled. */
+  tr.done .name, tr.done .phone { color: #8c959f; text-decoration: line-through; }
+  tr.done { background: #fbfcfd; }
+
+  tr.selected { background: #ddf4ff; }
+  tr.selected:hover { background: #cfeafd; }
+
+  .bulkbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 9px 13px;
+    background: #ddf4ff;
+    border: 1px solid #b6e3ff;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .bulkbar span { flex: 1; }
+
+  button.danger { color: #cf222e; }
+  button.danger:hover { background: #ffebe9; border-color: #ffb3ad; }
+  button:disabled { opacity: .55; cursor: default; background: #fff; }
+
+  @media (max-width: 560px) {
+    .date { display: none; }
+    th.date-col { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Leads</h1>
+  <div class="subtitle">Contacts who replied <strong>LAST ATTEMPT</strong> — <span id="count">0</span> total</div>
+
+  <div id="error"></div>
+
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="Search name or number" autocomplete="off">
+    <button id="refresh">Refresh</button>
+  </div>
+
+  <div class="bulkbar" id="bulkbar" hidden>
+    <span id="selinfo"></span>
+    <button id="clearsel">Clear</button>
+    <button id="delsel" class="danger">Delete selected</button>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th class="tick"><input type="checkbox" id="selall" title="Select all"></th>
+          <th class="tick" title="Tick once you have contacted this lead">Done</th>
+          <th>Name</th>
+          <th>Phone number</th>
+          <th class="date-col">Received</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="empty"></div>
+  </div>
+
+  <div class="footer" id="updated"></div>
+
+</div>
+
+<script>
+  const rowsEl   = document.getElementById('rows');
+  const emptyEl  = document.getElementById('empty');
+  const countEl  = document.getElementById('count');
+  const errorEl  = document.getElementById('error');
+  const updEl     = document.getElementById('updated');
+  const searchEl  = document.getElementById('search');
+  const bulkEl    = document.getElementById('bulkbar');
+  const selInfoEl = document.getElementById('selinfo');
+  const selAllEl  = document.getElementById('selall');
+  const delSelEl  = document.getElementById('delsel');
+
+  let leads = [];
+  const selected = new Set();
+
+  // Keep lead-supplied names out of the HTML parser.
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString(undefined, {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    });
+  }
+
+  function visible() {
+    const q = searchEl.value.trim().toLowerCase();
+    return leads.filter((l) =>
+      !q || (l.senderName || '').toLowerCase().includes(q) || l.waId.includes(q)
+    );
+  }
+
+  // Selection is client-side only; "Done" is the one that persists.
+  function renderBulkBar(list) {
+    const n = selected.size;
+    bulkEl.hidden = n === 0;
+    selInfoEl.textContent = n + (n === 1 ? ' lead selected' : ' leads selected');
+
+    // Only reflects the rows you can currently see, so it agrees with a search.
+    const shown = list.length > 0 && list.every((l) => selected.has(l.waId));
+    selAllEl.checked = shown;
+    selAllEl.indeterminate = !shown && list.some((l) => selected.has(l.waId));
+  }
+
+  function render() {
+    const list = visible();
+
+    countEl.textContent = leads.length;
+    renderBulkBar(list);
+
+    if (!list.length) {
+      rowsEl.innerHTML = '';
+      emptyEl.innerHTML = '<div class="empty">' +
+        (leads.length ? 'No lead matches your search.' : 'No leads yet.') + '</div>';
+      return;
+    }
+
+    emptyEl.innerHTML = '';
+    rowsEl.innerHTML = list.map((l) => {
+      const named = l.senderName && l.senderName.trim();
+      const isSel = selected.has(l.waId);
+      const cls = (l.contacted ? ' done' : '') + (isSel ? ' selected' : '');
+      return '<tr class="' + cls.trim() + '">' +
+        '<td class="tick"><input type="checkbox" class="sel" data-num="' + esc(l.waId) + '"' +
+          (isSel ? ' checked' : '') + ' aria-label="Select lead"></td>' +
+        '<td class="tick"><input type="checkbox" class="contactbox" data-num="' + esc(l.waId) + '"' +
+          (l.contacted ? ' checked' : '') + ' aria-label="Mark contacted"></td>' +
+        '<td class="name' + (named ? '' : ' unknown') + '">' + esc(named || 'Unknown') + '</td>' +
+        '<td class="phone">+' + esc(l.waId) + '</td>' +
+        '<td class="date">' + esc(fmtDate(l.receivedAt)) + '</td>' +
+        '<td class="actions"><div class="btns">' +
+          '<button class="copy" data-num="' + esc(l.waId) + '">Copy</button>' +
+          '<button class="del" data-num="' + esc(l.waId) + '"' +
+            ' data-name="' + esc(named || 'Unknown') + '">Delete</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  async function copy(text) {
+    // clipboard API needs a secure context; fall back for plain-http LAN access.
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  async function removeLead(btn) {
+    const waId = btn.dataset.num;
+    const name = btn.dataset.name || 'this lead';
+
+    if (!confirm('Delete ' + name + ' (+' + waId + ') from the leads list?\n\n' +
+                 'This cannot be undone.')) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Deleting';
+
+    try {
+      const res = await fetch('/api/leads/' + encodeURIComponent(waId), { method: 'DELETE' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      // Drop it locally so the row goes straight away; the 15s poll confirms.
+      leads = leads.filter((l) => l.waId !== waId);
+      selected.delete(waId);
+      errorEl.innerHTML = '';
+      render();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+      errorEl.innerHTML = '<div class="error">Could not delete +' + esc(waId) +
+        ' (' + esc(err.message) + ')</div>';
+    }
+  }
+
+  // Persist the "Done" tick. Optimistic: flip it now, put it back if the
+  // server refuses, so a failed save can never look like a saved one.
+  async function setContacted(box) {
+    const waId = box.dataset.num;
+    const want = box.checked;
+    const lead = leads.find((l) => l.waId === waId);
+
+    if (lead) lead.contacted = want;
+    box.closest('tr').classList.toggle('done', want);
+    box.disabled = true;
+
+    try {
+      const res = await fetch('/api/leads/' + encodeURIComponent(waId), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contacted: want }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      errorEl.innerHTML = '';
+    } catch (err) {
+      if (lead) lead.contacted = !want;
+      box.checked = !want;
+      box.closest('tr').classList.toggle('done', !want);
+      errorEl.innerHTML = '<div class="error">Could not save the tick for +' +
+        esc(waId) + ' (' + esc(err.message) + ')</div>';
+    } finally {
+      box.disabled = false;
+    }
+  }
+
+  rowsEl.addEventListener('change', (e) => {
+    const done = e.target.closest('.contactbox');
+    if (done) return setContacted(done);
+
+    const sel = e.target.closest('.sel');
+    if (!sel) return;
+    if (sel.checked) selected.add(sel.dataset.num);
+    else selected.delete(sel.dataset.num);
+    sel.closest('tr').classList.toggle('selected', sel.checked);
+    renderBulkBar(visible());
+  });
+
+  selAllEl.addEventListener('change', () => {
+    // Acts on what's on screen, so it never selects rows hidden by a search.
+    for (const l of visible()) {
+      if (selAllEl.checked) selected.add(l.waId);
+      else selected.delete(l.waId);
+    }
+    render();
+  });
+
+  document.getElementById('clearsel').addEventListener('click', () => {
+    selected.clear();
+    render();
+  });
+
+  delSelEl.addEventListener('click', async () => {
+    const waIds = [...selected];
+    if (!waIds.length) return;
+
+    if (!confirm('Delete ' + waIds.length +
+                 (waIds.length === 1 ? ' lead' : ' leads') + '?\n\nThis cannot be undone.')) return;
+
+    delSelEl.disabled = true;
+    delSelEl.textContent = 'Deleting';
+
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ waIds }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      leads = leads.filter((l) => !selected.has(l.waId));
+      selected.clear();
+      errorEl.innerHTML = '';
+      render();
+    } catch (err) {
+      errorEl.innerHTML = '<div class="error">Could not delete the selected leads (' +
+        esc(err.message) + ')</div>';
+    } finally {
+      delSelEl.disabled = false;
+      delSelEl.textContent = 'Delete selected';
+    }
+  });
+
+  rowsEl.addEventListener('click', async (e) => {
+    const delBtn = e.target.closest('.del');
+    if (delBtn) return removeLead(delBtn);
+
+    const btn = e.target.closest('.copy');
+    if (!btn) return;
+    const ok = await copy(btn.dataset.num);
+    btn.textContent = ok ? 'Copied' : 'Failed';
+    btn.classList.add(ok ? 'done' : 'fail');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('done', 'fail');
+    }, 1200);
+  });
+
+  async function load() {
+    try {
+      const res = await fetch('/api/leads');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      leads = await res.json();
+
+      // Drop selections for leads that vanished (deleted in another tab), so
+      // the count can't claim more than the table shows.
+      const live = new Set(leads.map((l) => l.waId));
+      for (const waId of selected) if (!live.has(waId)) selected.delete(waId);
+
+      errorEl.innerHTML = '';
+      updEl.textContent = 'Last updated ' + new Date().toLocaleTimeString();
+      render();
+    } catch (err) {
+      errorEl.innerHTML = '<div class="error">Cannot reach the server. Is it running? (' +
+        esc(err.message) + ')</div>';
+    }
+  }
+
+  searchEl.addEventListener('input', render);
+  document.getElementById('refresh').addEventListener('click', load);
+  load();
+  setInterval(load, 15000);
+</script>
+</body>
+</html>

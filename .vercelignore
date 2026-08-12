@@ -1,0 +1,8 @@
+# Never ship these — the .env holds the Atlas password and the log holds
+# real lead payloads. Vercel would otherwise treat root files as static.
+.env
+.env.*
+*.log
+_dedupe.js
+webhook-server.js
+scripts/
