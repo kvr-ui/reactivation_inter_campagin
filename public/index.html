@@ -16,10 +16,14 @@
     line-height: 1.5;
   }
 
+  /* Full width: the table is the page, so a centred column just wastes the
+     screen on a laptop. Padding only, no max-width. */
   .page {
-    max-width: 820px;
-    margin: 0 auto;
-    padding: 32px 20px 60px;
+    padding: 28px 28px 60px;
+  }
+
+  @media (max-width: 560px) {
+    .page { padding: 20px 12px 40px; }
   }
 
   h1 {
@@ -211,6 +215,10 @@
     font-size: 13px;
   }
   .bulkbar span { flex: 1; }
+
+  /* `display: flex` above outranks the browser's own [hidden] rule, so the bar
+     stayed on screen saying "0 leads selected". Put the hiding back. */
+  .bulkbar[hidden] { display: none; }
 
   button.danger { color: #cf222e; }
   button.danger:hover { background: #ffebe9; border-color: #ffb3ad; }
