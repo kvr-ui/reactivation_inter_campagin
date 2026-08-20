@@ -20,13 +20,21 @@ try {
 }
 
 const PORT = process.env.PORT || 3000;
-const DASHBOARD = path.join(__dirname, 'public', 'index.html');
+// The two dashboards, at the same paths the Vercel rewrites serve them from.
+const DASHBOARDS = {
+  '/': path.join(__dirname, 'public', 'index.html'),
+  '/dashboard': path.join(__dirname, 'public', 'index.html'),
+  '/dashboard2': path.join(__dirname, 'public', 'dashboard2.html'),
+};
 
 const webhook = require('./api/webhook');
 const leadsIndex = require('./api/leads/index');
 const leadById = require('./api/leads/[waId]');
+const leads2Index = require('./api/leads2/index');
+const lead2ById = require('./api/leads2/[waId]');
 
-const LEAD_PATH = /^\/api\/leads\/([^/]+)$/;
+// Campaign 1 is /api/leads/<waId>, campaign 2 is /api/leads2/<waId>.
+const LEAD_PATH = /^\/api\/(leads2?)\/([^/]+)$/;
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -68,17 +76,21 @@ const server = http.createServer(async (req, res) => {
 
   try {
     // Read per request so edits to the HTML show up without a restart.
-    if (req.method === 'GET' && (pathname === '/' || pathname === '/dashboard')) {
+    if (req.method === 'GET' && DASHBOARDS[pathname]) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(fs.readFileSync(DASHBOARD));
+      res.end(fs.readFileSync(DASHBOARDS[pathname]));
       return;
     }
 
     const raw = await readBody(req);
     const match = pathname.match(LEAD_PATH);
 
-    if (match) return leadById(...adapt(req, res, raw, { waId: match[1] }));
+    if (match) {
+      const handler = match[1] === 'leads2' ? lead2ById : leadById;
+      return handler(...adapt(req, res, raw, { waId: match[2] }));
+    }
     if (pathname === '/api/leads') return leadsIndex(...adapt(req, res, raw, {}));
+    if (pathname === '/api/leads2') return leads2Index(...adapt(req, res, raw, {}));
 
     // Everything else is webhook traffic — some providers verify with a GET.
     return webhook(...adapt(req, res, raw, {}));
@@ -94,5 +106,6 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Local server listening on http://localhost:${PORT}`);
   console.log(`Webhook URL: http://localhost:${PORT}/api/webhook`);
-  console.log(`Dashboard:   http://localhost:${PORT}/`);
+  console.log(`Dashboard 1: http://localhost:${PORT}/            (LAST ATTEMPT)`);
+  console.log(`Dashboard 2: http://localhost:${PORT}/dashboard2  (Get Answers)`);
 });

@@ -1,7 +1,9 @@
 // POST /api/webhook  (also reachable as /webhook via the rewrite in vercel.json)
 //
-// WATI posts every message event here. We log the whole request — the log is
-// the only record of traffic we drop — and store the ones that are leads.
+// WATI posts every message event here, for every campaign. We log the whole
+// request — the log is the only record of traffic we drop — and store the ones
+// that are leads. saveReply picks the campaign (and therefore the database)
+// from the button caption; see lib/campaigns.js.
 
 const { saveReply } = require('../lib/leads');
 
