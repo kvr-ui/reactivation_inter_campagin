@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leads — Get answer</title>
+<title>Leads — JAN 2027</title>
 <style>
   * { box-sizing: border-box; }
 
@@ -260,10 +260,10 @@
   <h1>Leads</h1>
   <div class="nav">
     <a href="/dashboard">LAST ATTEMPT</a>
-    <a href="/dashboard2" class="on">Get answer</a>
-    <a href="/dashboard3">JAN 2027</a>
+    <a href="/dashboard2">Get answer</a>
+    <a href="/dashboard3" class="on">JAN 2027</a>
   </div>
-  <div class="subtitle">Contacts who replied <strong>Get answer</strong> — <span id="count">0</span> total</div>
+  <div class="subtitle">Contacts who replied <strong>JAN 2027</strong> — <span id="count">0</span> total</div>
 
   <div id="error"></div>
 
@@ -412,7 +412,7 @@
     btn.textContent = 'Deleting';
 
     try {
-      const res = await fetch('/api/leads2/' + encodeURIComponent(waId), { method: 'DELETE' });
+      const res = await fetch('/api/leads3/' + encodeURIComponent(waId), { method: 'DELETE' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       // Drop it locally so the row goes straight away; the 15s poll confirms.
       leads = leads.filter((l) => l.waId !== waId);
@@ -439,7 +439,7 @@
     box.disabled = true;
 
     try {
-      const res = await fetch('/api/leads2/' + encodeURIComponent(waId), {
+      const res = await fetch('/api/leads3/' + encodeURIComponent(waId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contacted: want }),
@@ -494,7 +494,7 @@
     delSelEl.textContent = 'Deleting';
 
     try {
-      const res = await fetch('/api/leads2', {
+      const res = await fetch('/api/leads3', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ waIds }),
@@ -530,7 +530,7 @@
 
   async function load() {
     try {
-      const res = await fetch('/api/leads2');
+      const res = await fetch('/api/leads3');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       leads = await res.json();
 

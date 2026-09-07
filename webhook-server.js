@@ -20,21 +20,25 @@ try {
 }
 
 const PORT = process.env.PORT || 3000;
-// The two dashboards, at the same paths the Vercel rewrites serve them from.
+// The dashboards, at the same paths the Vercel rewrites serve them from.
 const DASHBOARDS = {
   '/': path.join(__dirname, 'public', 'index.html'),
   '/dashboard': path.join(__dirname, 'public', 'index.html'),
   '/dashboard2': path.join(__dirname, 'public', 'dashboard2.html'),
+  '/dashboard3': path.join(__dirname, 'public', 'dashboard3.html'),
 };
 
 const webhook = require('./api/webhook');
-const leadsIndex = require('./api/leads/index');
-const leadById = require('./api/leads/[waId]');
-const leads2Index = require('./api/leads2/index');
-const lead2ById = require('./api/leads2/[waId]');
 
-// Campaign 1 is /api/leads/<waId>, campaign 2 is /api/leads2/<waId>.
-const LEAD_PATH = /^\/api\/(leads2?)\/([^/]+)$/;
+// One entry per campaign, mirroring the api/ folders Vercel routes by name:
+// campaign 1 is /api/leads, campaign 2 /api/leads2, campaign 3 /api/leads3.
+const LEAD_ROUTES = {
+  leads: { index: require('./api/leads/index'), item: require('./api/leads/[waId]') },
+  leads2: { index: require('./api/leads2/index'), item: require('./api/leads2/[waId]') },
+  leads3: { index: require('./api/leads3/index'), item: require('./api/leads3/[waId]') },
+};
+
+const LEAD_PATH = /^\/api\/(leads[23]?)(?:\/([^/]+))?$/;
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -86,11 +90,11 @@ const server = http.createServer(async (req, res) => {
     const match = pathname.match(LEAD_PATH);
 
     if (match) {
-      const handler = match[1] === 'leads2' ? lead2ById : leadById;
-      return handler(...adapt(req, res, raw, { waId: match[2] }));
+      const [, route, waId] = match;
+      // With a trailing segment it's one lead, without it the collection.
+      const handler = waId ? LEAD_ROUTES[route].item : LEAD_ROUTES[route].index;
+      return handler(...adapt(req, res, raw, waId ? { waId } : {}));
     }
-    if (pathname === '/api/leads') return leadsIndex(...adapt(req, res, raw, {}));
-    if (pathname === '/api/leads2') return leads2Index(...adapt(req, res, raw, {}));
 
     // Everything else is webhook traffic — some providers verify with a GET.
     return webhook(...adapt(req, res, raw, {}));
@@ -107,5 +111,6 @@ server.listen(PORT, () => {
   console.log(`Local server listening on http://localhost:${PORT}`);
   console.log(`Webhook URL: http://localhost:${PORT}/api/webhook`);
   console.log(`Dashboard 1: http://localhost:${PORT}/            (LAST ATTEMPT)`);
-  console.log(`Dashboard 2: http://localhost:${PORT}/dashboard2  (Get Answers)`);
+  console.log(`Dashboard 2: http://localhost:${PORT}/dashboard2  (Get answer)`);
+  console.log(`Dashboard 3: http://localhost:${PORT}/dashboard3  (JAN 2027)`);
 });

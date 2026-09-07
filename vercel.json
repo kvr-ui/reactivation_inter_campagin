@@ -3,7 +3,8 @@
   "rewrites": [
     { "source": "/webhook", "destination": "/api/webhook" },
     { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/dashboard2", "destination": "/dashboard2.html" }
+    { "source": "/dashboard2", "destination": "/dashboard2.html" },
+    { "source": "/dashboard3", "destination": "/dashboard3.html" }
   ],
   "functions": {
     "api/**/*.js": {
