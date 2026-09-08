@@ -1,10 +1,30 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/webhook", "destination": "/api/webhook" },
-    { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/dashboard2", "destination": "/dashboard2.html" },
-    { "source": "/dashboard3", "destination": "/dashboard3.html" }
+    {
+      "source": "/webhook",
+      "destination": "/api/webhook"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dashboard2",
+      "destination": "/dashboard2.html"
+    },
+    {
+      "source": "/dashboard3",
+      "destination": "/dashboard3.html"
+    },
+    {
+      "source": "/chat",
+      "destination": "/chat.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    }
   ],
   "functions": {
     "api/**/*.js": {

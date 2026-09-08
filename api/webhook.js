@@ -6,6 +6,7 @@
 // from the button caption; see lib/campaigns.js.
 
 const { saveReply } = require('../lib/leads');
+const { recordMessage } = require('../lib/activity');
 
 // Vercel parses JSON and form bodies for us, but WATI's content-type isn't
 // guaranteed, so accept a raw string too.
@@ -35,6 +36,21 @@ module.exports = async function handler(req, res) {
       // A DB failure must not make WATI think delivery failed — it would retry
       // the same event forever. Log it and still acknowledge.
       console.error('--- mongo write failed ---', err.message);
+    }
+
+    // Additive, and deliberately in its own try: recording the preview and
+    // unread count is a nice-to-have for the chat UI, while saveReply above is
+    // the one that must not be disturbed. This never creates a lead — it only
+    // annotates one that already exists.
+    try {
+      const touched = await recordMessage(payload);
+      if (touched) {
+        console.log(
+          `--- activity recorded --- ${payload.waId} ${payload.owner === true ? 'out' : 'in'} (${touched} campaign${touched > 1 ? 's' : ''})`
+        );
+      }
+    } catch (err) {
+      console.error('--- activity write failed ---', err.message);
     }
   }
 

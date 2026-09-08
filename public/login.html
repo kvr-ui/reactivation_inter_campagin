@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in</title>
+<link rel="icon" href="data:,">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #f5f6f8; color: #1f2328;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+  }
+  .box {
+    width: 100%; max-width: 340px;
+    background: #fff; border: 1px solid #d0d7de; border-radius: 8px;
+    padding: 26px 24px 22px; margin: 20px;
+  }
+  h1 { font-size: 17px; margin: 0 0 4px; }
+  p.sub { color: #656d76; font-size: 13px; margin: 0 0 18px; }
+  label { display: block; font-size: 12.5px; font-weight: 500; margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 9px 11px; font-size: 14px; font-family: inherit;
+    border: 1px solid #d0d7de; border-radius: 6px; outline: none;
+  }
+  input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
+  button {
+    width: 100%; margin-top: 14px; padding: 9px 14px;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    border: 1px solid #1f883d; border-radius: 6px;
+    background: #1f883d; color: #fff; cursor: pointer;
+  }
+  button:hover { background: #1a7f37; }
+  button:disabled { opacity: .6; cursor: default; }
+  .err {
+    margin-top: 12px; padding: 8px 11px; font-size: 13px;
+    background: #ffebe9; border: 1px solid #ffb3ad; color: #cf222e; border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+  <form class="box" id="form">
+    <h1>Lead chat</h1>
+    <p class="sub">Enter the team password to continue.</p>
+    <label for="pw">Password</label>
+    <input type="password" id="pw" autocomplete="current-password" autofocus required>
+    <button type="submit" id="go">Sign in</button>
+    <div class="err" id="err" hidden></div>
+  </form>
+
+<script>
+  const form = document.getElementById('form');
+  const pw = document.getElementById('pw');
+  const go = document.getElementById('go');
+  const err = document.getElementById('err');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    go.disabled = true; go.textContent = 'Signing in…'; err.hidden = true;
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw.value }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Sign in failed');
+
+      // Only same-origin paths, so a crafted ?next= cannot bounce you offsite.
+      const next = new URLSearchParams(location.search).get('next');
+      location.href = next && next.startsWith('/') && !next.startsWith('//') ? next : '/chat';
+    } catch (e2) {
+      err.textContent = e2.message;
+      err.hidden = false;
+      pw.select();
+    } finally {
+      go.disabled = false; go.textContent = 'Sign in';
+    }
+  });
+</script>
+</body>
+</html>
