@@ -118,7 +118,16 @@
     border-bottom: 1px solid #eaeef2;
   }
 
-  .list-head h1 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+  .list-head h1 {
+    font-size: 15px; font-weight: 600; margin: 0 0 10px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .dashlink {
+    margin-left: auto;
+    font-size: 12px; font-weight: 400;
+    color: #0969da; text-decoration: none;
+  }
+  .dashlink:hover { text-decoration: underline; }
 
   .nav { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
   .nav button {
@@ -391,7 +400,7 @@
 
   <div class="list">
     <div class="list-head">
-      <h1>Lead chat</h1>
+      <h1>Lead chat <a href="/dashboard3" class="dashlink">Dashboards &rarr;</a></h1>
       <div class="nav" id="nav"></div>
       <div class="searchrow">
         <input type="search" id="search" placeholder="Search name or number" autocomplete="off">
