@@ -18,6 +18,7 @@ const ROUTES = {
   send: api.send,
   crm: api.crm,
   contacted: api.contacted,
+  stopped: api.stopped,
 };
 
 module.exports = async function handler(req, res) {
