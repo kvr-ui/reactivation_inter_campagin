@@ -8,6 +8,7 @@
 <style>
   * { box-sizing: border-box; }
 
+  html, body { height: 100%; }
   body {
     margin: 0;
     background: #f5f6f8;
@@ -15,215 +16,30 @@
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
-  }
-
-  /* Two inboxes side by side: whichever campaign is picked on the left, and
-     LAST ATTEMPT always on the right, each with its own list and chat box so
-     both can be answered without switching back and forth. Below 1100px there
-     is no room for both, so they stack and the page scrolls between them. */
-  .panes { display: grid; grid-template-columns: 1fr; }
-  .pane { height: 100vh; container-type: inline-size; }
-  .pane + .pane, .stops { border-top: 3px solid #d0d7de; }
-
-  @media (min-width: 1100px) {
-    .panes { grid-template-columns: 1fr 1fr 240px; height: 100vh; overflow: hidden; }
-    .pane + .pane, .stops { border-top: 0; border-left: 3px solid #d0d7de; }
-  }
-
-  /* ------------------------------------------------------ STOP column */
-
-  /* Leads who replied STOP, from every campaign, kept out of both inboxes so
-     nobody messages them by mistake. */
-  .stops {
     display: flex; flex-direction: column;
-    background: #fff;
-    min-height: 0; max-height: 100vh;
-  }
-  .stops-head {
-    padding: 14px 14px 10px;
-    border-bottom: 1px solid #eaeef2;
-    background: #fff5f5;
-  }
-  .stops-head h1 {
-    font-size: 15px; font-weight: 600; margin: 0;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .stops-head h1::before {
-    content: ""; width: 8px; height: 8px; border-radius: 50%; background: #cf222e;
-  }
-  .stops-head .sub { color: #656d76; font-size: 12px; margin-top: 2px; }
-  .stops-list { flex: 1; overflow-y: auto; }
-  .stop {
-    padding: 9px 14px;
-    border-bottom: 1px solid #f2f4f7;
-    cursor: pointer;
-  }
-  .stop:hover { background: #f6f8fa; }
-  .stop.on { background: #ddf4ff; }
-  .stop .top { display: flex; align-items: baseline; gap: 6px; }
-  .stop .nm {
-    flex: 1; min-width: 0; font-weight: 500;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .stop .nm.unknown { color: #8c959f; font-style: italic; font-weight: 400; }
-  .stop.unread .nm { font-weight: 700; }
-  .stop .when { color: #656d76; font-size: 11.5px; white-space: nowrap; }
-  .stop .row2 { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
-  .stop .ph {
-    flex: 1; min-width: 0;
-    color: #656d76; font-size: 12px;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .stop .camp {
-    font-size: 10.5px; padding: 0 6px; border-radius: 999px;
-    background: #eaeef2; color: #4a5259; white-space: nowrap;
-  }
-  .stops .empty { padding: 30px 14px; text-align: center; color: #8c959f; font-size: 13px; }
-
-  .stop-pill {
-    font-size: 12px; padding: 4px 10px; border-radius: 999px; white-space: nowrap;
-    background: #ffebe9; color: #cf222e; border: 1px solid #ffb3ad; font-weight: 600;
-  }
-
-  /* Inside a pane: a fixed list beside a chat that owns the rest. Both scroll
-     independently, the pane itself never does.
-
-     grid-template-rows and the min-height:0 below are what make that true. A
-     grid item defaults to min-height:auto, so without them each pane grows to
-     its content — the list stretched to all 83 rows, the page became one long
-     document, and the chat pane's centred text ended up far below the fold. */
-  .app {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    grid-template-rows: 100%;
-    height: 100%;
     overflow: hidden;
-    position: relative;
   }
 
-  .list, .chat, .crm { min-height: 0; }
+  /* ------------------------------------------------------------ top bar */
 
-  /* Bigin opens as a drawer over the chat: with two inboxes on screen there is
-     no width left to give it a permanent column. */
-  .crm {
-    display: none;
-    flex-direction: column;
-    position: absolute; top: 0; right: 0; bottom: 0;
-    width: min(330px, 100%);
+  /* One view at a time, full screen: the tabs pick which campaign (or the
+     STOP list) fills everything below. */
+  .top {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 10px 16px;
     background: #fff;
-    border-left: 1px solid #d0d7de;
-    box-shadow: -6px 0 18px rgba(31,35,40,.12);
-    overflow-y: auto;
-    z-index: 5;
+    border-bottom: 1px solid #d0d7de;
   }
-  .app.crm-on .crm { display: flex; }
+  .top h1 { font-size: 15px; font-weight: 600; margin: 0; white-space: nowrap; }
 
-  .crm-bar {
-    display: flex; align-items: center;
-    padding: 6px 8px 6px 16px;
-    border-bottom: 1px solid #eaeef2;
-    position: sticky; top: 0; background: #fff; z-index: 1;
-    font-size: 11px; font-weight: 600; letter-spacing: .04em;
-    text-transform: uppercase; color: #8c959f;
-  }
-  .crm-bar button {
-    margin-left: auto;
-    border: 0; background: none; cursor: pointer;
-    font-size: 18px; line-height: 1; color: #656d76; padding: 2px 8px;
-  }
-  .crm-bar button:hover { color: #1f2328; }
-
-  .crm-head {
-    padding: 13px 16px 11px;
-    border-bottom: 1px solid #eaeef2;
-  }
-  .crm-head .nm { font-weight: 600; }
-  .crm-head .sub { color: #656d76; font-size: 12px; }
-
-  .crm-sec { padding: 12px 16px; border-bottom: 1px solid #f2f4f7; }
-  .crm-sec h3 {
-    margin: 0 0 8px;
-    font-size: 11px; font-weight: 600; letter-spacing: .04em;
-    text-transform: uppercase; color: #8c959f;
-  }
-
-  .kv { display: flex; gap: 8px; font-size: 12.5px; padding: 2px 0; }
-  .kv .k { color: #8c959f; flex: none; min-width: 92px; }
-  .kv .v { color: #1f2328; overflow-wrap: anywhere; }
-
-  .card2 {
-    border: 1px solid #eaeef2;
-    border-radius: 6px;
-    padding: 8px 10px;
-    margin-bottom: 7px;
-    background: #fcfcfd;
-  }
-  .card2:last-child { margin-bottom: 0; }
-  .card2 .top {
-    display: flex; gap: 6px; align-items: baseline;
-    font-size: 12px; margin-bottom: 3px; flex-wrap: wrap;
-  }
-  .card2 .when { color: #8c959f; font-size: 11.5px; margin-left: auto; }
-  .card2 .body {
-    font-size: 12.5px; color: #1f2328; white-space: pre-wrap; overflow-wrap: anywhere;
-  }
-  .card2 .by { color: #8c959f; font-size: 11.5px; margin-top: 3px; }
-
-  .tag {
-    font-size: 11px; padding: 1px 7px; border-radius: 999px;
-    background: #eaeef2; color: #4a5259; font-weight: 500;
-  }
-  .tag.stage { background: #ddf4ff; color: #0a5fa5; }
-  .tag.inb   { background: #dafbe1; color: #1a7f37; }
-  .tag.outb  { background: #fff1e5; color: #9a5b00; }
-
-  .crm-empty { color: #8c959f; font-size: 12.5px; font-style: italic; }
-  .crm-warn {
-    margin: 10px 16px; padding: 8px 11px; font-size: 12.5px;
-    background: #fff8c5; border: 1px solid #f0e2a5; border-radius: 6px; color: #7a5c00;
-  }
-
-  /* ---------------------------------------------------------- left pane */
-
-  .list {
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-    border-right: 1px solid #d0d7de;
-    min-width: 0;
-  }
-
-  .list-head {
-    padding: 14px 14px 10px;
-    border-bottom: 1px solid #eaeef2;
-  }
-
-  .list-head h1 {
-    font-size: 15px; font-weight: 600; margin: 0 0 10px;
-    display: flex; align-items: baseline; gap: 8px;
-  }
-  /* The fixed LAST ATTEMPT inbox, marked so the two halves can't be confused. */
-  .pane.fixed .list-head { background: #fff8f1; }
-  .pane.fixed .list-head h1::before {
-    content: ""; width: 8px; height: 8px; border-radius: 50%;
-    background: #bc4c00; align-self: center;
-  }
-  .dashlink {
-    margin-left: auto;
-    font-size: 12px; font-weight: 400;
-    color: #0969da; text-decoration: none;
-  }
-  .dashlink:hover { text-decoration: underline; }
-
-  .nav { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; }
   .nav button {
-    padding: 4px 10px;
+    padding: 5px 12px;
     border: 1px solid #d0d7de;
     border-radius: 999px;
     background: #fff;
     color: #656d76;
-    font-size: 12px;
+    font-size: 13px;
     font-family: inherit;
     cursor: pointer;
   }
@@ -231,10 +47,13 @@
   .nav button.on {
     background: #0969da; border-color: #0969da; color: #fff; font-weight: 600;
   }
+  .nav button.stoptab.on { background: #cf222e; border-color: #cf222e; }
+
+  .tools { display: flex; gap: 6px; align-items: center; margin-left: auto; }
 
   input[type=search] {
-    width: 100%;
-    padding: 7px 10px;
+    width: 240px;
+    padding: 6px 10px;
     font-size: 13px;
     font-family: inherit;
     border: 1px solid #d0d7de;
@@ -245,11 +64,9 @@
     border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12);
   }
 
-  .searchrow { display: flex; gap: 6px; }
-
   .sync {
     flex: none;
-    padding: 7px 12px;
+    padding: 6px 12px;
     font-family: inherit; font-size: 13px;
     border: 1px solid #d0d7de; border-radius: 6px;
     background: #fff; color: #1f2328; cursor: pointer;
@@ -258,6 +75,64 @@
   .sync:hover { background: #f3f4f6; }
   .sync:disabled { opacity: .6; cursor: default; }
   .sync.ok { background: #dafbe1; border-color: #a0d8ab; color: #1a7f37; }
+
+  .dashlink { font-size: 12.5px; color: #0969da; text-decoration: none; white-space: nowrap; }
+  .dashlink:hover { text-decoration: underline; }
+
+  /* --------------------------------------------------------------- layout */
+
+  /* Lead list(s) beside a chat that owns the rest, and Bigin on the right
+     when there is room. Every column scrolls on its own; the page never does.
+
+     grid-template-rows and the min-height:0 below are what make that true. A
+     grid item defaults to min-height:auto, so without them each column grows
+     to its content and the page turns into one long document. */
+  .app {
+    flex: 1; min-height: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: 100%;
+    position: relative;
+  }
+  @media (min-width: 1500px) {
+    body.reading .app { grid-template-columns: auto 1fr 340px; }
+  }
+
+  .lists { display: flex; min-height: 0; }
+  .list, .chat, .crm { min-height: 0; }
+
+  .list {
+    width: 320px;
+    display: flex; flex-direction: column;
+    background: #fff;
+    border-right: 1px solid #d0d7de;
+  }
+  /* Two lists side by side (LAST ATTEMPT and LAST ATTEMPT 2) get a little
+     narrower each so the chat keeps its room. */
+  .lists.two .list { width: 290px; }
+  .lists.two .list + .list { border-left: 2px solid #d0d7de; }
+
+  .list-head {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid #eaeef2;
+  }
+  .list-head .t {
+    font-weight: 600; font-size: 13.5px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .list-head .t .n {
+    font-weight: 500; font-size: 11.5px; color: #4a5259;
+    background: #eaeef2; border-radius: 999px; padding: 0 7px;
+  }
+  .list-head .sub { color: #8c959f; font-size: 12px; }
+  .list.wave2 .list-head { background: #fff8f1; }
+  .list.wave2 .list-head .t::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%; background: #bc4c00;
+  }
+  .list.stopped .list-head { background: #fff5f5; }
+  .list.stopped .list-head .t::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%; background: #cf222e;
+  }
 
   .leads { flex: 1; overflow-y: auto; }
 
@@ -278,11 +153,6 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .lead-name.unknown { color: #8c959f; font-style: italic; font-weight: 400; }
-  .lead-sub {
-    color: #656d76;
-    font-size: 12px;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  }
   .lead.done .lead-name { color: #8c959f; text-decoration: line-through; }
   /* A lead you had closed out who has replied again is the one row you most
      need to read, so the "done" strike-through yields to the unread styling. */
@@ -300,6 +170,11 @@
     display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none;
   }
   .lead-when { color: #656d76; font-size: 11.5px; white-space: nowrap; }
+
+  .camp {
+    font-size: 10.5px; padding: 0 6px; border-radius: 999px;
+    background: #eaeef2; color: #4a5259; white-space: nowrap;
+  }
 
   /* An unread row has to read as unread at a glance, not on inspection. */
   .lead.unread { background: #f2fbf4; }
@@ -333,14 +208,9 @@
   .dot.open { background: #1f883d; }
   .dot.shut { background: #d0d7de; }
 
-  .list-foot {
-    padding: 8px 14px;
-    border-top: 1px solid #eaeef2;
-    color: #8c959f;
-    font-size: 12px;
-  }
+  .empty { padding: 30px 14px; text-align: center; color: #8c959f; font-size: 13px; }
 
-  /* --------------------------------------------------------- right pane */
+  /* ----------------------------------------------------------------- chat */
 
   .chat { display: flex; flex-direction: column; min-width: 0; }
   .chatbody { display: flex; flex-direction: column; flex: 1; min-height: 0; }
@@ -350,20 +220,18 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 6px 10px;
-    padding: 10px 16px;
+    padding: 10px 18px;
     background: #fff;
     border-bottom: 1px solid #d0d7de;
   }
-  /* The name keeps a readable width; the pills wrap under it when a pane is
-     narrow rather than squeezing it to nothing. */
-  .chat-head .who { flex: 1 1 150px; min-width: 0; }
+  .chat-head .who { flex: 1 1 160px; min-width: 0; }
   .chat-head .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chat-head .ph {
     color: #656d76; font-size: 12.5px;
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
 
-  .window-pill {
+  .window-pill, .stop-pill {
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 999px;
@@ -371,6 +239,7 @@
   }
   .window-pill.open { background: #dafbe1; color: #1a7f37; border: 1px solid #a0d8ab; }
   .window-pill.shut { background: #f6f8fa; color: #656d76; border: 1px solid #d0d7de; }
+  .stop-pill { background: #ffebe9; color: #cf222e; border: 1px solid #ffb3ad; font-weight: 600; }
 
   .crmbtn {
     font-family: inherit; font-size: 12px;
@@ -379,6 +248,8 @@
     background: #fff; color: #1f2328; cursor: pointer; white-space: nowrap;
   }
   .crmbtn:hover { background: #f3f4f6; }
+  /* With a Bigin column on screen the button has nothing to open. */
+  @media (min-width: 1500px) { .crmbtn { display: none; } }
 
   .tickwrap {
     display: flex; align-items: center; gap: 6px;
@@ -389,14 +260,14 @@
   .thread {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 16px;
+    padding: 20px 18px;
     display: flex;
     flex-direction: column;
     gap: 3px;
   }
 
   .bubble {
-    max-width: min(620px, 80%);
+    max-width: min(620px, 78%);
     padding: 8px 12px;
     border-radius: 10px;
     white-space: pre-wrap;
@@ -426,7 +297,7 @@
   .composer {
     display: flex;
     gap: 8px;
-    padding: 12px 16px;
+    padding: 12px 18px;
     background: #fff;
     border-top: 1px solid #d0d7de;
     align-items: flex-end;
@@ -461,7 +332,7 @@
   .send:disabled { opacity: .5; cursor: default; }
 
   .shut-note {
-    padding: 12px 16px;
+    padding: 12px 18px;
     background: #fff;
     border-top: 1px solid #d0d7de;
     color: #656d76;
@@ -477,8 +348,101 @@
 
   .error {
     background: #ffebe9; border: 1px solid #ffb3ad; color: #cf222e;
-    border-radius: 6px; padding: 8px 12px; margin: 10px 16px 0; font-size: 13px;
+    border-radius: 6px; padding: 8px 12px; margin: 10px 18px 0; font-size: 13px;
   }
+
+  /* ---------------------------------------------------------------- bigin */
+
+  /* A column on a wide screen; below that a drawer over the chat, opened from
+     the chat header. */
+  .crm {
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    border-left: 1px solid #d0d7de;
+    overflow-y: auto;
+  }
+  @media (min-width: 1500px) {
+    body.reading .crm { display: flex; }
+    .crm-bar button { display: none; }
+  }
+  @media (max-width: 1499px) {
+    .crm {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: min(340px, 100%);
+      box-shadow: -6px 0 18px rgba(31,35,40,.12);
+      z-index: 5;
+    }
+    body.reading.crm-on .crm { display: flex; }
+  }
+
+  .crm-bar {
+    display: flex; align-items: center;
+    padding: 6px 8px 6px 16px;
+    border-bottom: 1px solid #eaeef2;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; color: #8c959f;
+    min-height: 33px;
+  }
+  .crm-bar button {
+    margin-left: auto;
+    border: 0; background: none; cursor: pointer;
+    font-size: 18px; line-height: 1; color: #656d76; padding: 2px 8px;
+  }
+  .crm-bar button:hover { color: #1f2328; }
+
+  .crm-head {
+    padding: 13px 16px 11px;
+    border-bottom: 1px solid #eaeef2;
+  }
+  .crm-head .nm { font-weight: 600; }
+  .crm-head .sub { color: #656d76; font-size: 12px; }
+
+  .crm-sec { padding: 12px 16px; border-bottom: 1px solid #f2f4f7; }
+  .crm-sec h3 {
+    margin: 0 0 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; color: #8c959f;
+  }
+
+  .kv { display: flex; gap: 8px; font-size: 12.5px; padding: 2px 0; }
+  .kv .k { color: #8c959f; flex: none; min-width: 92px; }
+  .kv .v { color: #1f2328; overflow-wrap: anywhere; }
+
+  .card2 {
+    border: 1px solid #eaeef2;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 7px;
+    background: #fcfcfd;
+  }
+  .card2:last-child { margin-bottom: 0; }
+  .card2 .top2 {
+    display: flex; gap: 6px; align-items: baseline;
+    font-size: 12px; margin-bottom: 3px; flex-wrap: wrap;
+  }
+  .card2 .when { color: #8c959f; font-size: 11.5px; margin-left: auto; }
+  .card2 .body {
+    font-size: 12.5px; color: #1f2328; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .card2 .by { color: #8c959f; font-size: 11.5px; margin-top: 3px; }
+
+  .tag {
+    font-size: 11px; padding: 1px 7px; border-radius: 999px;
+    background: #eaeef2; color: #4a5259; font-weight: 500;
+  }
+  .tag.stage { background: #ddf4ff; color: #0a5fa5; }
+  .tag.inb   { background: #dafbe1; color: #1a7f37; }
+  .tag.outb  { background: #fff1e5; color: #9a5b00; }
+
+  .crm-empty { color: #8c959f; font-size: 12.5px; font-style: italic; }
+  .crm-warn {
+    margin: 10px 16px; padding: 8px 11px; font-size: 12.5px;
+    background: #fff8c5; border: 1px solid #f0e2a5; border-radius: 6px; color: #7a5c00;
+  }
+
+  /* --------------------------------------------------------------- narrow */
 
   .back {
     display: none;
@@ -486,32 +450,75 @@
     padding: 5px 10px; font-family: inherit; font-size: 13px; cursor: pointer;
   }
 
-  /* Measured against the pane, not the screen: a half-width pane on a laptop
-     is as cramped as a phone. One view at a time there — the list, or the chat. */
-  @container (max-width: 540px) {
+  /* Two lists and a chat need a real screen. Below that: the lists, stacked,
+     or the open chat — one at a time. */
+  @media (max-width: 1000px) {
     .app { grid-template-columns: 1fr; }
-    .app.reading .list { display: none; }
-    .app:not(.reading) .chat { display: none; }
+    .lists { flex-direction: column; }
+    .list, .lists.two .list { width: auto; flex: 1; border-right: 0; }
+    .lists.two .list + .list { border-left: 0; border-top: 2px solid #d0d7de; }
+    body.reading .lists { display: none; }
+    body:not(.reading) .chat { display: none; }
     .back { display: inline-block; }
-    .tickwrap .lbl { display: none; }
+    input[type=search] { width: 160px; }
   }
 </style>
 </head>
 <body>
 
-<div class="panes">
-  <section class="pane" id="main"></section>
-  <section class="pane fixed" id="lastattempt"></section>
-  <section class="stops" id="stops">
-    <div class="stops-head">
-      <h1>STOP</h1>
-      <div class="sub">Replied STOP — every campaign</div>
-    </div>
-    <div class="stops-list"></div>
-  </section>
+<div class="top">
+  <h1>Lead chat</h1>
+  <div class="nav" id="nav"></div>
+  <div class="tools">
+    <input type="search" id="search" placeholder="Search name or number" autocomplete="off">
+    <button class="sync" id="sync" title="Re-read everything from WATI and Bigin now">Sync</button>
+    <a href="/dashboard" class="dashlink" id="dashlink">Dashboards &rarr;</a>
+  </div>
+</div>
+
+<div class="app">
+  <div class="lists" id="lists"></div>
+  <div class="chat"><div class="chatbody" id="chatbody"></div></div>
+  <div class="crm" id="crm"></div>
 </div>
 
 <script>
+  const navEl    = document.getElementById('nav');
+  const searchEl = document.getElementById('search');
+  const syncEl   = document.getElementById('sync');
+  const dashEl   = document.getElementById('dashlink');
+  const listsEl  = document.getElementById('lists');
+  const bodyEl   = document.getElementById('chatbody');
+  const crmEl    = document.getElementById('crm');
+
+  // The tab that is not a campaign: everyone who replied STOP, from all of them.
+  const STOP = 'stop';
+
+  const DASHBOARDS = { reactivation: '/dashboard', questionbank: '/dashboard2', jan2027: '/dashboard3' };
+
+  let campaigns = [];           // from /api/chat/campaigns
+  let view = 'reactivation';    // a campaign key, or STOP
+  let leads = [];
+  let open = null;              // rid ("campaign|waId") of the lead on screen
+  let sending = false;
+
+  // Re-opening a lead you were just reading should be instant, so threads stay
+  // in memory and the network fetch only refreshes what is already painted.
+  // Keyed by number: the WhatsApp thread is the same whichever campaign it is.
+  const threads = new Map();    // waId -> { messages, windowOpen, windowClosesAt }
+
+  // The open thread's bubbles, by message id. This is what makes a poll cheap:
+  // an unchanged message is left alone instead of being rebuilt.
+  const nodes = new Map();      // id -> { el, meta, status }
+
+  let mounted = null;           // rid whose chrome is in the DOM
+  let mountedOpen = null;       // the windowOpen the chrome was built for
+  let lastDay = '';             // day of the last appended bubble
+  let listSig = '';             // last rendered lead-list signature
+
+  // Live refs into the mounted chrome, so a poll never has to re-query them.
+  let elThread, elDraft, elSend, elPill, elErr, elTick;
+
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
     { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
   ));
@@ -520,6 +527,13 @@
   const day  = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   const dt   = (iso) => !iso ? '' : new Date(iso).toLocaleString(undefined,
     { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+  const ridOf = (key, waId) => key + '|' + waId;
+  const leadByRid = (rid) => leads.find((l) => l.rid === rid);
+  const openLead_ = () => (open ? leadByRid(open) : null);
+  const waIdOf = (rid) => rid.slice(rid.indexOf('|') + 1);
+  const keyOf  = (rid) => rid.slice(0, rid.indexOf('|'));
+  const campaignOf = (key) => campaigns.find((c) => c.key === key);
 
   function shortWhen(iso) {
     if (!iso) return '';
@@ -543,832 +557,691 @@
     el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   }
 
-  // The LAST ATTEMPT campaign gets the right-hand inbox to itself; the left one
-  // switches between everything else.
-  const FIXED = 'reactivation';
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* private window */ } },
+  };
 
-  const panes = [];
+  // ------------------------------------------------------------ lead lists
+
+  function renderNav() {
+    navEl.innerHTML = campaigns.map((c) =>
+      '<button data-view="' + esc(c.key) + '"' + (c.key === view ? ' class="on"' : '') + '>' +
+      esc(c.label) + '</button>'
+    ).join('') +
+      '<button class="stoptab' + (view === STOP ? ' on' : '') + '" data-view="' + STOP + '">STOP</button>';
+    dashEl.href = DASHBOARDS[view] || '/dashboard';
+  }
+
+  function matches(l, q) {
+    return !q || (l.senderName || '').toLowerCase().includes(q) || l.waId.includes(q);
+  }
+
+  // The columns the current view is split into. A campaign with a second wave
+  // (LAST ATTEMPT) shows its earlier leads and its new tappers side by side.
+  function groups() {
+    if (view === STOP) {
+      return [{ cls: 'stopped', title: 'Replied STOP', sub: 'Every campaign', rows: leads, showCamp: true }];
+    }
+    const inbox = leads.filter((l) => !l.stopped);
+    const c = campaignOf(view);
+    if (c && c.secondWave) {
+      const from = new Date(c.secondWave.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+      return [
+        { cls: '', title: c.label, sub: 'Tapped before ' + from, rows: inbox.filter((l) => l.wave !== 2) },
+        { cls: 'wave2', title: c.secondWave.label, sub: 'Tapped since ' + from, rows: inbox.filter((l) => l.wave === 2) },
+      ];
+    }
+    return [{ cls: '', title: c ? c.label : view, sub: '', rows: inbox }];
+  }
+
+  function rowHtml(l, now, showCamp) {
+    const named = (l.senderName || '').trim();
+    const isOpen = new Date(l.windowClosesAt) > now;
+    const unread = l.unread > 0 && l.rid !== open;
+
+    // Preview the last message; prefix ours with "You:" so it is obvious at a
+    // glance whether the ball is in your court.
+    const preview = l.lastText
+      ? (l.lastFrom === 'us' ? '<span class="from">You: </span>' : '') +
+        esc(l.lastText.replace(/\s+/g, ' ').slice(0, 60))
+      : '<span class="from">+' + esc(l.waId) + '</span>';
+
+    return '<div class="lead' + (l.rid === open ? ' on' : '') + (l.contacted ? ' done' : '') +
+           (unread ? ' unread' : '') + '" data-rid="' + esc(l.rid) + '">' +
+      '<label class="tickcell" title="Mark this lead contacted">' +
+        '<input type="checkbox" class="leadtick" data-rid="' + esc(l.rid) + '"' +
+        (l.contacted ? ' checked' : '') + ' aria-label="Mark contacted"></label>' +
+      '<span class="dot ' + (isOpen ? 'open' : 'shut') + '" title="' +
+        (isOpen ? 'Window open' : 'Window closed') + '"></span>' +
+      '<span class="lead-main">' +
+        '<div class="lead-name' + (named ? '' : ' unknown') + '">' + esc(named || 'Unknown') + '</div>' +
+        '<div class="lead-prev">' + preview + '</div>' +
+      '</span>' +
+      '<span class="lead-right">' +
+        '<span class="lead-when">' + esc(shortWhen(view === STOP ? (l.stoppedAt || l.lastAt) : l.lastAt)) + '</span>' +
+        (showCamp ? '<span class="camp">' + esc(l.campaignLabel || '') + '</span>' : '') +
+        (unread ? '<span class="badge">' + (l.unread > 20 ? '20+' : l.unread) + '</span>' : '') +
+      '</span>' +
+    '</div>';
+  }
+
+  // Rows rebuilt on every keystroke and every 30s poll is pure waste, and it
+  // kills the hover state mid-click. Rebuild only when the result would differ.
+  function renderLeads() {
+    const q = searchEl.value.trim().toLowerCase();
+    const now = Date.now();
+    const gs = groups();
+
+    const sig = view + '|' + open + '|' + q + '|' + gs.map((g) => g.rows.map((l) =>
+      l.rid + (l.contacted ? '1' : '0') + (new Date(l.windowClosesAt) > now ? 'o' : 's') +
+      l.lastAt + '|' + (l.unread || 0) + '|' + (l.lastText || '')
+    ).join(',')).join('#');
+    if (sig === listSig) return;
+    listSig = sig;
+
+    // Keep each column's scroll position across a rebuild.
+    const scrolls = [...listsEl.querySelectorAll('.leads')].map((el) => el.scrollTop);
+
+    listsEl.classList.toggle('two', gs.length === 2);
+    listsEl.innerHTML = gs.map((g) => {
+      const shown = g.rows.filter((l) => matches(l, q));
+      const inWindow = g.rows.reduce((n, l) => n + (new Date(l.windowClosesAt) > now ? 1 : 0), 0);
+      return '<div class="list ' + g.cls + '">' +
+        '<div class="list-head">' +
+          '<div class="t">' + esc(g.title) + ' <span class="n">' + g.rows.length + '</span></div>' +
+          '<div class="sub">' + (g.sub ? esc(g.sub) + ' · ' : '') + inWindow + ' inside the 24h window</div>' +
+        '</div>' +
+        '<div class="leads">' +
+          (shown.length
+            ? shown.map((l) => rowHtml(l, now, g.showCamp)).join('')
+            : '<div class="empty">' + (g.rows.length ? 'No match.' : 'No leads yet.') + '</div>') +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    listsEl.querySelectorAll('.leads').forEach((el, i) => { el.scrollTop = scrolls[i] || 0; });
+  }
 
   // An unread count in the tab title is the only indication you get when the
-  // window is in the background — which is exactly when a reply arrives. It
-  // counts both inboxes.
+  // window is in the background — which is exactly when a reply arrives.
   function updateTitle() {
-    const n = panes.reduce((t, p) => t + p.unreadCount(), 0) + stopsUnread();
+    const inView = view === STOP ? leads : leads.filter((l) => !l.stopped);
+    const n = inView.reduce((t, l) => t + (l.rid !== open ? (l.unread || 0) : 0), 0);
     const title = n ? '(' + n + ') Lead chat' : 'Lead chat';
     if (document.title !== title) document.title = title;
   }
 
-  // One inbox: a lead list, a conversation and a Bigin drawer, all state kept
-  // in here so the two on screen never step on each other.
-  //
-  //   campaigns  every campaign, for the switcher (null = fixed, no switcher)
-  //   campaign   the campaign shown first
-  function createPane(root, { title, campaign, campaigns, dashHref }) {
-    let leads = [];
-    let open = null;              // the waId whose thread is on screen
-    let sending = false;
-
-    // Re-opening a lead you were just reading should be instant, so threads stay
-    // in memory and the network fetch only refreshes what is already painted.
-    const threads = new Map();    // waId -> { messages, windowOpen, windowClosesAt }
-
-    // The open thread's bubbles, by message id. This is what makes a poll cheap:
-    // an unchanged message is left alone instead of being rebuilt.
-    const nodes = new Map();      // id -> { el, meta, status }
-
-    let mounted = null;           // waId whose chrome is in the DOM
-    let mountedOpen = null;       // the windowOpen the chrome was built for
-    let lastDay = '';             // day of the last appended bubble
-    let listSig = '';             // last rendered lead-list signature
-
-    // Live refs into the mounted chrome, so a poll never has to re-query them.
-    let elThread, elDraft, elSend, elPill, elErr, elTick;
-
-    root.innerHTML =
-      '<div class="app">' +
-        '<div class="list">' +
-          '<div class="list-head">' +
-            '<h1>' + esc(title) + ' <a href="' + esc(dashHref) + '" class="dashlink">Dashboards &rarr;</a></h1>' +
-            (campaigns
-              ? '<div class="nav">' + campaigns.map((c) =>
-                  '<button data-key="' + esc(c.key) + '"' + (c.key === campaign ? ' class="on"' : '') + '>' +
-                  esc(c.label) + '</button>').join('') + '</div>'
-              : '') +
-            '<div class="searchrow">' +
-              '<input type="search" placeholder="Search name or number" autocomplete="off">' +
-              '<button class="sync" title="Re-read everything from WATI and Bigin now">Sync</button>' +
-            '</div>' +
-          '</div>' +
-          '<div class="leads"></div>' +
-          '<div class="list-foot"></div>' +
-        '</div>' +
-        '<div class="chat"><div class="chatbody"></div></div>' +
-        '<div class="crm"></div>' +
-      '</div>';
-
-    const appEl    = root.querySelector('.app');
-    const navEl    = root.querySelector('.nav');
-    const searchEl = root.querySelector('input[type=search]');
-    const syncEl   = root.querySelector('.sync');
-    const leadsEl  = root.querySelector('.leads');
-    const footEl   = root.querySelector('.list-foot');
-    const bodyEl   = root.querySelector('.chatbody');
-    const crmEl    = root.querySelector('.crm');
-
-    const leadById = (waId) => leads.find((l) => l.waId === waId);
-    const qs = () => '?campaign=' + encodeURIComponent(campaign);
-
-    // ---------------------------------------------------------- lead list
-
-    // Leads who replied STOP live in the STOP column, not in the inbox.
-    const inbox = () => leads.filter((l) => !l.stopped);
-
-    function visibleLeads() {
-      const q = searchEl.value.trim().toLowerCase();
-      if (!q) return inbox();
-      return inbox().filter((l) =>
-        (l.senderName || '').toLowerCase().includes(q) || l.waId.includes(q)
-      );
-    }
-
-    // 83 rows rebuilt on every keystroke and every 30s poll is pure waste, and it
-    // kills the hover state mid-click. Rebuild only when the rendered result
-    // would actually differ.
-    function renderLeads() {
-      const list = visibleLeads();
-      const now = Date.now();
-
-      const sig = campaign + '|' + open + '|' + list.map((l) =>
-        l.waId + (l.contacted ? '1' : '0') + (new Date(l.windowClosesAt) > now ? 'o' : 's') +
-        l.lastAt + '|' + (l.unread || 0) + '|' + (l.lastText || '')
-      ).join(',');
-      if (sig === listSig) return;
-      listSig = sig;
-
-      const all = inbox();
-      const openCount = all.reduce((n, l) => n + (new Date(l.windowClosesAt) > now ? 1 : 0), 0);
-      footEl.textContent = all.length + ' leads · ' + openCount + ' inside the 24h window';
-
-      if (!list.length) {
-        leadsEl.innerHTML = '<div style="padding:30px 14px;text-align:center;color:#8c959f">' +
-          (all.length ? 'No match.' : 'No leads yet.') + '</div>';
-        return;
+  async function loadLeads() {
+    const v = view;
+    try {
+      const res = await fetch(v === STOP
+        ? '/api/chat/stopped'
+        : '/api/chat/leads?campaign=' + encodeURIComponent(v));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const fresh = await res.json();
+      // A slow response for a tab already switched away from is stale.
+      if (v !== view) return;
+      for (const l of fresh) {
+        l.campaign = l.campaign || v;
+        l.rid = ridOf(l.campaign, l.waId);
       }
-
-      leadsEl.innerHTML = list.map((l) => {
-        const named = (l.senderName || '').trim();
-        const isOpen = new Date(l.windowClosesAt) > now;
-        const unread = l.unread > 0 && l.waId !== open;
-
-        // Preview the last message; prefix ours with "You:" so it is obvious at a
-        // glance whether the ball is in your court.
-        const preview = l.lastText
-          ? (l.lastFrom === 'us' ? '<span class="from">You: </span>' : '') +
-            esc(l.lastText.replace(/\s+/g, ' ').slice(0, 60))
-          : '<span class="from">+' + esc(l.waId) + '</span>';
-
-        return '<div class="lead' + (l.waId === open ? ' on' : '') + (l.contacted ? ' done' : '') +
-               (unread ? ' unread' : '') + '" data-num="' + esc(l.waId) + '">' +
-          '<label class="tickcell" title="Mark this lead contacted">' +
-            '<input type="checkbox" class="leadtick" data-num="' + esc(l.waId) + '"' +
-            (l.contacted ? ' checked' : '') + ' aria-label="Mark contacted"></label>' +
-          '<span class="dot ' + (isOpen ? 'open' : 'shut') + '" title="' +
-            (isOpen ? 'Window open' : 'Window closed') + '"></span>' +
-          '<span class="lead-main">' +
-            '<div class="lead-name' + (named ? '' : ' unknown') + '">' + esc(named || 'Unknown') + '</div>' +
-            '<div class="lead-prev">' + preview + '</div>' +
-          '</span>' +
-          '<span class="lead-right">' +
-            '<span class="lead-when">' + esc(shortWhen(l.lastAt)) + '</span>' +
-            (unread ? '<span class="badge">' + (l.unread > 20 ? '20+' : l.unread) + '</span>' : '') +
-          '</span>' +
-        '</div>';
-      }).join('');
-    }
-
-    // Stopped leads are counted by the STOP column instead.
-    function unreadCount() {
-      return inbox().reduce((t, l) => t + (l.waId !== open ? (l.unread || 0) : 0), 0);
-    }
-
-    async function loadLeads() {
-      const key = campaign;
-      try {
-        const res = await fetch('/api/chat/leads' + qs());
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const fresh = await res.json();
-        // A slow response for a campaign already switched away from is stale.
-        if (key !== campaign) return;
-        leads = fresh;
-        renderLeads();
-        updateTitle();
-      } catch (err) {
-        if (key !== campaign) return;
-        listSig = '';
-        leadsEl.innerHTML = '<div class="error">Cannot load leads (' + esc(err.message) + ')</div>';
-      }
-    }
-
-    // --------------------------------------------------------- conversation
-
-    const atBottom = () =>
-      !elThread || elThread.scrollHeight - elThread.scrollTop - elThread.clientHeight < 60;
-
-    function showError(msg) {
-      if (!elErr) return;
-      elErr.textContent = msg || '';
-      elErr.hidden = !msg;
-    }
-
-    function forgetChrome() {
-      elThread = elDraft = elSend = elPill = elErr = elTick = null;
-    }
-
-    // Builds the chrome once per conversation. Deliberately NOT called from the
-    // poll: rebuilding it is what used to blow away the half-typed reply.
-    function mountChat(t) {
-      const lead = leadById(open) || { waId: open };
-      const named = (lead.senderName || '').trim() || 'Unknown';
-      const draft = elDraft && mounted === open ? elDraft.value : '';
-
-      bodyEl.innerHTML =
-        '<div class="chat-head">' +
-          '<button class="back">←</button>' +
-          '<span class="who"><div class="nm">' + esc(named) + '</div>' +
-          '<div class="ph">+' + esc(lead.waId) + '</div></span>' +
-          (lead.stopped ? '<span class="stop-pill" title="This lead replied STOP">Replied STOP</span>' : '') +
-          '<span class="window-pill ' + (t.windowOpen ? 'open' : 'shut') + '"></span>' +
-          '<button class="crmbtn" title="Show this contact in Bigin">Bigin</button>' +
-          '<label class="tickwrap"><input type="checkbox" class="headtick"' +
-            (lead.contacted ? ' checked' : '') + '><span class="lbl">Done</span></label>' +
-        '</div>' +
-        '<div class="error" hidden></div>' +
-        '<div class="thread"></div>' +
-        (t.windowOpen
-          ? '<div class="composer">' +
-              '<textarea rows="1" placeholder="Type a message…" title="Enter sends, Shift+Enter starts a new line"></textarea>' +
-              '<button class="send">Send</button>' +
-            '</div>'
-          : '<div class="shut-note"><strong>The 24-hour window has closed.</strong> ' +
-            'WhatsApp only allows a template message now — this lead has to message ' +
-            'first before a free-form reply can be delivered.</div>');
-
-      elThread = bodyEl.querySelector('.thread');
-      elDraft  = bodyEl.querySelector('textarea');
-      elSend   = bodyEl.querySelector('.send');
-      elPill   = bodyEl.querySelector('.window-pill');
-      elErr    = bodyEl.querySelector('.error');
-      elTick   = bodyEl.querySelector('.headtick');
-
-      if (elDraft && draft) { elDraft.value = draft; autosize(elDraft); }
-
-      mounted = open;
-      mountedOpen = t.windowOpen;
-      nodes.clear();
-      lastDay = '';
-    }
-
-    function metaText(m) {
-      const bits = [m.at ? time(m.at) : ''];
-      if (m.owner && m.status) bits.push(m.status.toLowerCase());
-      if (m.owner && m.operator) bits.push(m.operator);
-      return bits.filter(Boolean).join(' · ');
-    }
-
-    function bubbleFor(m) {
-      const frag = document.createDocumentFragment();
-
-      const d = m.at ? day(m.at) : '';
-      if (d && d !== lastDay) {
-        lastDay = d;
-        const sep = document.createElement('div');
-        sep.className = 'daysep';
-        sep.textContent = d;
-        frag.appendChild(sep);
-      }
-
-      const el = document.createElement('div');
-      el.className = 'bubble ' + (m.owner ? 'out' : 'in');
-
-      if (m.text) {
-        // textContent, not innerHTML: lead-supplied text never reaches the parser.
-        el.appendChild(document.createTextNode(m.text));
-      } else {
-        const ph = document.createElement('span');
-        ph.className = 'placeholder';
-        ph.textContent = '[' + (m.type || 'attachment') + ']';
-        el.appendChild(ph);
-      }
-
-      const meta = document.createElement('div');
-      meta.className = 'meta' + ((m.status || '').toUpperCase() === 'FAILED' ? ' failed' : '');
-      meta.textContent = metaText(m);
-      el.appendChild(meta);
-
-      frag.appendChild(el);
-      nodes.set(m.id, { el, meta, status: m.status });
-      return frag;
-    }
-
-    // The poll's hot path. Appends only what is new and rewrites only the status
-    // lines that moved (sent → delivered → read); everything else is untouched,
-    // so scrolling, text selection and the composer all survive a refresh.
-    function syncMessages(list) {
-      const known = [];
-
-      for (const m of list) {
-        const seen = nodes.get(m.id);
-        if (!seen) { known.push(m); continue; }
-        if (seen.status !== m.status) {
-          seen.status = m.status;
-          seen.meta.textContent = metaText(m);
-          seen.meta.classList.toggle('failed', (m.status || '').toUpperCase() === 'FAILED');
-        }
-      }
-
-      // A message vanishing means the thread was reordered or trimmed; the cheap
-      // incremental path can't express that, so start clean.
-      if (nodes.size && list.length < nodes.size) {
-        elThread.innerHTML = '';
-        nodes.clear();
-        lastDay = '';
-        const all = document.createDocumentFragment();
-        for (const m of list) all.appendChild(bubbleFor(m));
-        elThread.appendChild(all);
-        elThread.scrollTop = elThread.scrollHeight;
-        return;
-      }
-
-      if (known.length) {
-        const blank = elThread.querySelector('.blank');
-        if (blank) blank.remove();
-        const stick = atBottom();
-        const frag = document.createDocumentFragment();
-        for (const m of known) frag.appendChild(bubbleFor(m));
-        elThread.appendChild(frag);
-        // Only follow the conversation if you were already at the bottom —
-        // scrolling back through history must not get yanked away.
-        if (stick) elThread.scrollTop = elThread.scrollHeight;
-      }
-
-      if (!list.length && !elThread.children.length) {
-        elThread.innerHTML = '<div class="blank">No messages in this conversation yet.</div>';
-      }
-    }
-
-    function updatePill() {
-      if (!elPill || !open) return;
-      const t = threads.get(open);
-      if (!t) return;
-      const left = t.windowOpen ? countdown(t.windowClosesAt) : null;
-      const label = t.windowOpen ? (left || 'open') : 'window closed';
-      if (elPill.textContent !== label) elPill.textContent = label;
-    }
-
-    function paint(t) {
-      // Remount only when the conversation changed, or when the window opened or
-      // closed and the composer therefore has to appear or go away.
-      if (mounted !== open || mountedOpen !== t.windowOpen) mountChat(t);
-      syncMessages(t.messages);
-      updatePill();
-      if (elDraft) {
-        elDraft.disabled = sending;
-        elSend.disabled = sending;
-        elSend.textContent = sending ? 'Sending…' : 'Send';
-      }
-    }
-
-    function renderBlank() {
-      bodyEl.innerHTML = '<div class="blank">Pick a lead to open the conversation</div>';
-      forgetChrome();
-      mounted = mountedOpen = null;
-      nodes.clear();
-    }
-
-    let threadFails = 0;
-    let nextThreadPoll = 0;
-
-    async function loadThread(silent) {
-      if (!open) return;
-      const waId = open;
-
-      if (!silent && !threads.has(waId)) {
-        bodyEl.innerHTML = '<div class="loading">Loading conversation…</div>';
-        forgetChrome();
-        mounted = null;
-      }
-
-      try {
-        const res = await fetch('/api/chat/messages/' + encodeURIComponent(waId) + qs());
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const fresh = await res.json();
-
-        // A slow response for a lead you have already clicked away from must not
-        // overwrite the thread now on screen.
-        if (open !== waId) return;
-
-        threads.set(waId, fresh);
-        threadFails = 0;
-        nextThreadPoll = 0;
-        paint(fresh);
-        showError('');
-      } catch (err) {
-        // Back off instead of hammering a server that is already failing.
-        threadFails++;
-        nextThreadPoll = Date.now() + Math.min(10000 * 2 ** threadFails, 120000);
-        if (open !== waId) return;
-        if (threads.has(waId)) showError('Refresh failed (' + err.message + ') — retrying');
-        else bodyEl.innerHTML = '<div class="error">Cannot load the conversation (' + esc(err.message) + ')</div>';
-      }
-    }
-
-    function openLead(waId) {
-      open = waId;
-      // Clear the badge immediately; the server is told when the thread loads.
-      const lead = leadById(waId);
-      if (lead) lead.unread = 0;
-      appEl.classList.add('reading');
+      leads = fresh;
       renderLeads();
       updateTitle();
-
-      // Paint the cached copy first so switching back is instant, then refresh
-      // in the background.
-      const cached = threads.get(waId);
-      if (cached) { mounted = null; paint(cached); loadThread(true); }
-      else loadThread(false);
-
-      if (appEl.classList.contains('crm-on')) loadCrm(waId);
-      onOpen(campaign, waId);
-    }
-
-    function closeLead() {
-      open = null;
-      appEl.classList.remove('reading', 'crm-on');
-      renderLeads();
-      renderBlank();
-      renderCrm();
-    }
-
-    async function doSend() {
-      const text = (elDraft?.value || '').trim();
-      if (!text || sending || !open) return;
-
-      const waId = open;
-      sending = true;
-      elDraft.disabled = true;
-      elSend.disabled = true;
-      elSend.textContent = 'Sending…';
-      showError('');
-
-      try {
-        const res = await fetch('/api/chat/send/' + encodeURIComponent(waId) + qs(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-        });
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || 'HTTP ' + res.status);
-
-        sending = false;
-        if (open === waId && elDraft) { elDraft.value = ''; autosize(elDraft); }
-        // Re-read from WATI rather than faking the bubble, so what is on screen
-        // is what WATI accepted, with its real delivery status.
-        await loadThread(true);
-        if (open === waId && elDraft) elDraft.focus();
-      } catch (err) {
-        sending = false;
-        if (open === waId && elDraft) {
-          elDraft.disabled = false;
-          elSend.disabled = false;
-          elSend.textContent = 'Send';
-          elDraft.value = text;          // never lose what was typed
-          showError('Not sent: ' + err.message);
-        }
-      }
-    }
-
-    // --------------------------------------------------------- bigin drawer
-
-    const crmCache = new Map();     // waId -> payload
-
-    function sec(heading, inner) {
-      return '<div class="crm-sec"><h3>' + heading + '</h3>' + inner + '</div>';
-    }
-
-    function renderCrm() {
-      if (!open) { crmEl.innerHTML = ''; return; }
-      const bar = '<div class="crm-bar">Bigin<button class="crmclose" title="Close">&times;</button></div>';
-      const d = crmCache.get(open);
-
-      if (!d) { crmEl.innerHTML = bar + '<div class="crm-sec crm-empty">Loading Bigin…</div>'; return; }
-      if (d.configured === false) {
-        crmEl.innerHTML = bar + '<div class="crm-warn">Bigin is not configured — set ZOHO_CLIENT_ID, ' +
-          'ZOHO_CLIENT_SECRET and ZOHO_REFRESH_TOKEN in .env</div>';
-        return;
-      }
-      if (d.error) { crmEl.innerHTML = bar + '<div class="crm-warn">Bigin: ' + esc(d.error) + '</div>'; return; }
-      if (!d.found) {
-        crmEl.innerHTML = bar + '<div class="crm-sec crm-empty">No Bigin contact matches this number.</div>';
-        return;
-      }
-
-      const c = d.contact;
-      let html = bar +
-        '<div class="crm-head">' +
-          '<div class="nm">' + esc(c.name || 'Unnamed contact') + '</div>' +
-          '<div class="sub">' + esc(c.phone || '') +
-            (c.owner ? ' · owner ' + esc(c.owner) : '') + '</div>' +
-        '</div>';
-
-      if (d.duplicates > 1) {
-        html += '<div class="crm-warn">' + d.duplicates +
-          ' Bigin contacts share this number — showing the first.</div>';
-      }
-
-      if (c.fields.length) {
-        html += sec('Contact', c.fields.map((f) =>
-          '<div class="kv"><span class="k">' + esc(f.label) + '</span>' +
-          '<span class="v">' + esc(f.value) + '</span></div>').join(''));
-      }
-
-      html += sec('Pipelines' + (d.pipelines.length ? ' (' + d.pipelines.length + ')' : ''),
-        d.pipelines.length
-          ? d.pipelines.map((x) =>
-              '<div class="card2">' +
-                '<div class="top"><strong>' + esc(x.name || 'Untitled') + '</strong>' +
-                  (x.stage ? '<span class="tag stage">' + esc(x.stage) + '</span>' : '') + '</div>' +
-                (x.sub ? '<div class="by">' + esc(x.sub) + '</div>' : '') +
-                (x.closing ? '<div class="by">closes ' + esc(x.closing) + '</div>' : '') +
-              '</div>').join('')
-          : '<div class="crm-empty">No pipeline records.</div>');
-
-      html += sec('Call notes' + (d.calls.length ? ' (' + d.calls.length + ')' : ''),
-        d.calls.length
-          ? d.calls.map((x) => {
-              const inb = (x.type || '').toLowerCase() === 'inbound';
-              return '<div class="card2">' +
-                '<div class="top">' +
-                  '<span class="tag ' + (inb ? 'inb' : 'outb') + '">' + esc(x.type || 'call') + '</span>' +
-                  (x.duration && x.duration !== '00:00'
-                    ? '<span class="tag">' + esc(x.duration) + '</span>' : '') +
-                  '<span class="when">' + esc(dt(x.at)) + '</span></div>' +
-                (x.note
-                  ? '<div class="body">' + esc(x.note) + '</div>'
-                  : '<div class="crm-empty">No note</div>') +
-                (x.owner ? '<div class="by">' + esc(x.owner) + '</div>' : '') +
-              '</div>';
-            }).join('')
-          : '<div class="crm-empty">No calls logged.</div>');
-
-      html += sec('Notes' + (d.notes.length ? ' (' + d.notes.length + ')' : ''),
-        d.notes.length
-          ? d.notes.map((x) =>
-              '<div class="card2">' +
-                '<div class="top"><span class="when">' + esc(dt(x.at)) + '</span></div>' +
-                '<div class="body">' + esc(x.text || x.title || '') + '</div>' +
-                (x.owner ? '<div class="by">' + esc(x.owner) + '</div>' : '') +
-              '</div>').join('')
-          : '<div class="crm-empty">No notes.</div>');
-
-      crmEl.innerHTML = html;
-    }
-
-    async function loadCrm(waId) {
-      if (crmCache.has(waId)) { renderCrm(); return; }
-      renderCrm();                                  // shows "Loading Bigin…"
-      try {
-        const res = await fetch('/api/chat/crm/' + encodeURIComponent(waId));
-        crmCache.set(waId, await res.json());
-      } catch (err) {
-        crmCache.set(waId, { configured: true, error: err.message });
-      }
-      if (open === waId) renderCrm();
-    }
-
-    // --------------------------------------------------------------- events
-
-    function switchCampaign(key) {
-      campaign = key;
-      threads.clear();
-      crmCache.clear();
-      leads = [];
-      [...navEl.children].forEach((c) => c.classList.toggle('on', c.dataset.key === key));
-      closeLead();
+    } catch (err) {
+      if (v !== view) return;
       listSig = '';
-      leadsEl.innerHTML = '';
-      return loadLeads();
+      listsEl.classList.remove('two');
+      listsEl.innerHTML = '<div class="list"><div class="error">Cannot load leads (' +
+        esc(err.message) + ')</div></div>';
     }
-
-    if (navEl) navEl.addEventListener('click', (e) => {
-      const b = e.target.closest('button[data-key]');
-      if (!b || b.dataset.key === campaign) return;
-      switchCampaign(b.dataset.key);
-    });
-
-    // Opens a lead from outside the pane — the STOP column. Switches campaign
-    // first when the lead belongs to another one this pane can show.
-    async function show(key, waId) {
-      if (key !== campaign) {
-        if (!campaigns || !campaigns.some((c) => c.key === key)) return false;
-        await switchCampaign(key);
-      }
-      if (open !== waId) openLead(waId);
-      else appEl.classList.add('reading');
-      return true;
-    }
-
-    leadsEl.addEventListener('click', (e) => {
-      // The tick is inside the row, so it has to opt out of opening the chat.
-      if (e.target.closest('.tickcell')) return;
-      const row = e.target.closest('.lead');
-      if (!row || row.dataset.num === open) return;
-      openLead(row.dataset.num);
-    });
-
-    // Shared by the list tick and the chat header's "Done" — one field, two
-    // places it can be changed, so they must not drift.
-    async function saveContacted(waId, want) {
-      const key = campaign;
-      const lead = leadById(waId);
-      if (lead) lead.contacted = want;
-      renderLeads();
-
-      // Keep the open conversation's header tick in step.
-      if (elTick && open === waId) elTick.checked = want;
-
-      try {
-        const res = await fetch('/api/chat/contacted/' + encodeURIComponent(waId) +
-                                '?campaign=' + encodeURIComponent(key), {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contacted: want }),
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return true;
-      } catch {
-        // Put it back, so a failed save can never look like a saved one.
-        if (lead) lead.contacted = !want;
-        renderLeads();
-        if (elTick && open === waId) elTick.checked = !want;
-        return false;
-      }
-    }
-
-    leadsEl.addEventListener('change', (e) => {
-      const box = e.target.closest('.leadtick');
-      if (box) saveContacted(box.dataset.num, box.checked);
-    });
-
-    bodyEl.addEventListener('click', (e) => {
-      if (e.target.closest('.send')) return doSend();
-      if (e.target.closest('.back')) return closeLead();
-      if (e.target.closest('.crmbtn') && open) {
-        const on = appEl.classList.toggle('crm-on');
-        if (on) loadCrm(open);
-      }
-    });
-
-    crmEl.addEventListener('click', (e) => {
-      if (e.target.closest('.crmclose')) appEl.classList.remove('crm-on');
-    });
-
-    bodyEl.addEventListener('change', (e) => {
-      if (e.target.closest('.headtick') && open) saveContacted(open, e.target.checked);
-    });
-
-    bodyEl.addEventListener('keydown', (e) => {
-      if (e.target.tagName !== 'TEXTAREA') return;
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
-    });
-
-    bodyEl.addEventListener('input', (e) => {
-      if (e.target.tagName === 'TEXTAREA') autosize(e.target);
-    });
-
-    // Sync: the poll keeps the conversation current, but Bigin edits sit behind a
-    // client cache and a server TTL, and a lead's newest message behind the 30s
-    // sweep. This drops all of it and re-reads on demand.
-    syncEl.addEventListener('click', async () => {
-      syncEl.disabled = true;
-      syncEl.textContent = 'Syncing…';
-      syncEl.classList.remove('ok');
-
-      const waId = open;
-      try {
-        // Nothing to ask the server to recompute: the webhook keeps the lead list
-        // current. Syncing is dropping what this browser is holding and re-reading.
-        crmCache.clear();
-        threads.delete(waId);
-        listSig = '';
-
-        await loadLeads();
-
-        if (waId && open === waId) {
-          await loadThread(true);
-          if (appEl.classList.contains('crm-on')) await loadCrm(waId);
-        }
-
-        syncEl.classList.add('ok');
-        syncEl.textContent = 'Synced';
-      } catch (err) {
-        syncEl.textContent = 'Failed';
-        console.error('sync failed', err);
-      } finally {
-        syncEl.disabled = false;
-        setTimeout(() => { syncEl.textContent = 'Sync'; syncEl.classList.remove('ok'); }, 2000);
-      }
-    });
-
-    let searchTimer;
-    searchEl.addEventListener('input', () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(renderLeads, 140);
-    });
-
-    // -------------------------------------------------------------- polling
-
-    // Polling a hidden tab burns WATI's rate limit for nobody's benefit, so the
-    // timers check first and a refresh fires the moment you come back.
-    function pollThread() {
-      if (document.hidden || !open || sending) return;
-      if (Date.now() < nextThreadPoll) return;
-      loadThread(true);
-    }
-
-    function pollLeads() {
-      if (document.hidden) return;
-      loadLeads();
-    }
-
-    function resume() {
-      nextThreadPoll = 0;
-      pollLeads();
-      pollThread();
-    }
-
-    renderBlank();
-
-    return { root, loadLeads, pollLeads, pollThread, updatePill, resume, unreadCount, show };
   }
 
-  // ------------------------------------------------------------ STOP column
+  // ----------------------------------------------------------------- chat
 
-  const stopsListEl = document.querySelector('#stops .stops-list');
-  let stops = [];
-  let stopSel = '';               // "campaign|waId" of the row last opened
-  let stopSig = '';
+  const atBottom = () =>
+    !elThread || elThread.scrollHeight - elThread.scrollTop - elThread.clientHeight < 60;
 
-  const stopKey = (key, waId) => key + '|' + waId;
+  function showError(msg) {
+    if (!elErr) return;
+    elErr.textContent = msg || '';
+    elErr.hidden = !msg;
+  }
 
-  function renderStops() {
-    const sig = stopSel + '#' + stops.map((s) =>
-      s.campaign + s.waId + s.stoppedAt + '|' + (s.unread || 0)).join(',');
-    if (sig === stopSig) return;
-    stopSig = sig;
+  function forgetChrome() {
+    elThread = elDraft = elSend = elPill = elErr = elTick = null;
+  }
 
-    if (!stops.length) {
-      stopsListEl.innerHTML = '<div class="empty">Nobody has replied STOP.</div>';
+  const qsFor = (rid) => '?campaign=' + encodeURIComponent(keyOf(rid));
+
+  // Builds the chrome once per conversation. Deliberately NOT called from the
+  // poll: rebuilding it is what used to blow away the half-typed reply.
+  function mountChat(t) {
+    const lead = openLead_() || { waId: waIdOf(open) };
+    const named = (lead.senderName || '').trim() || 'Unknown';
+    const draft = elDraft && mounted === open ? elDraft.value : '';
+    const camp = campaignOf(keyOf(open));
+
+    bodyEl.innerHTML =
+      '<div class="chat-head">' +
+        '<button class="back">←</button>' +
+        '<span class="who"><div class="nm">' + esc(named) + '</div>' +
+        '<div class="ph">+' + esc(lead.waId) +
+          (view === STOP && camp ? ' · ' + esc(camp.label) : '') + '</div></span>' +
+        (lead.stopped ? '<span class="stop-pill" title="This lead replied STOP">Replied STOP</span>' : '') +
+        '<span class="window-pill ' + (t.windowOpen ? 'open' : 'shut') + '"></span>' +
+        '<button class="crmbtn" title="Show this contact in Bigin">Bigin</button>' +
+        '<label class="tickwrap"><input type="checkbox" class="headtick"' +
+          (lead.contacted ? ' checked' : '') + '> Done</label>' +
+      '</div>' +
+      '<div class="error" hidden></div>' +
+      '<div class="thread"></div>' +
+      (t.windowOpen
+        ? '<div class="composer">' +
+            '<textarea rows="1" placeholder="Type a message…  (Enter to send)" title="Enter sends, Shift+Enter starts a new line"></textarea>' +
+            '<button class="send">Send</button>' +
+          '</div>'
+        : '<div class="shut-note"><strong>The 24-hour window has closed.</strong> ' +
+          'WhatsApp only allows a template message now — this lead has to message ' +
+          'first before a free-form reply can be delivered.</div>');
+
+    elThread = bodyEl.querySelector('.thread');
+    elDraft  = bodyEl.querySelector('textarea');
+    elSend   = bodyEl.querySelector('.send');
+    elPill   = bodyEl.querySelector('.window-pill');
+    elErr    = bodyEl.querySelector('.error');
+    elTick   = bodyEl.querySelector('.headtick');
+
+    if (elDraft && draft) { elDraft.value = draft; autosize(elDraft); }
+
+    mounted = open;
+    mountedOpen = t.windowOpen;
+    nodes.clear();
+    lastDay = '';
+  }
+
+  function metaText(m) {
+    const bits = [m.at ? time(m.at) : ''];
+    if (m.owner && m.status) bits.push(m.status.toLowerCase());
+    if (m.owner && m.operator) bits.push(m.operator);
+    return bits.filter(Boolean).join(' · ');
+  }
+
+  function bubbleFor(m) {
+    const frag = document.createDocumentFragment();
+
+    const d = m.at ? day(m.at) : '';
+    if (d && d !== lastDay) {
+      lastDay = d;
+      const sep = document.createElement('div');
+      sep.className = 'daysep';
+      sep.textContent = d;
+      frag.appendChild(sep);
+    }
+
+    const el = document.createElement('div');
+    el.className = 'bubble ' + (m.owner ? 'out' : 'in');
+
+    if (m.text) {
+      // textContent, not innerHTML: lead-supplied text never reaches the parser.
+      el.appendChild(document.createTextNode(m.text));
+    } else {
+      const ph = document.createElement('span');
+      ph.className = 'placeholder';
+      ph.textContent = '[' + (m.type || 'attachment') + ']';
+      el.appendChild(ph);
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'meta' + ((m.status || '').toUpperCase() === 'FAILED' ? ' failed' : '');
+    meta.textContent = metaText(m);
+    el.appendChild(meta);
+
+    frag.appendChild(el);
+    nodes.set(m.id, { el, meta, status: m.status });
+    return frag;
+  }
+
+  // The poll's hot path. Appends only what is new and rewrites only the status
+  // lines that moved (sent → delivered → read); everything else is untouched,
+  // so scrolling, text selection and the composer all survive a refresh.
+  function syncMessages(list) {
+    const known = [];
+
+    for (const m of list) {
+      const seen = nodes.get(m.id);
+      if (!seen) { known.push(m); continue; }
+      if (seen.status !== m.status) {
+        seen.status = m.status;
+        seen.meta.textContent = metaText(m);
+        seen.meta.classList.toggle('failed', (m.status || '').toUpperCase() === 'FAILED');
+      }
+    }
+
+    // A message vanishing means the thread was reordered or trimmed; the cheap
+    // incremental path can't express that, so start clean.
+    if (nodes.size && list.length < nodes.size) {
+      elThread.innerHTML = '';
+      nodes.clear();
+      lastDay = '';
+      const all = document.createDocumentFragment();
+      for (const m of list) all.appendChild(bubbleFor(m));
+      elThread.appendChild(all);
+      elThread.scrollTop = elThread.scrollHeight;
       return;
     }
 
-    stopsListEl.innerHTML = stops.map((s) => {
-      const named = (s.senderName || '').trim();
-      const k = stopKey(s.campaign, s.waId);
-      const unread = s.unread > 0 && k !== stopSel;
-      return '<div class="stop' + (k === stopSel ? ' on' : '') + (unread ? ' unread' : '') +
-             '" data-key="' + esc(s.campaign) + '" data-num="' + esc(s.waId) + '">' +
-        '<div class="top"><span class="nm' + (named ? '' : ' unknown') + '">' +
-          esc(named || 'Unknown') + '</span>' +
-          (unread ? '<span class="badge">' + (s.unread > 20 ? '20+' : s.unread) + '</span>' : '') +
-          '<span class="when">' + esc(shortWhen(s.stoppedAt || s.lastAt)) + '</span></div>' +
-        '<div class="row2"><span class="ph">+' + esc(s.waId) + '</span>' +
-          '<span class="camp">' + esc(s.campaignLabel) + '</span></div>' +
-      '</div>';
-    }).join('');
-  }
+    if (known.length) {
+      const blank = elThread.querySelector('.blank');
+      if (blank) blank.remove();
+      const stick = atBottom();
+      const frag = document.createDocumentFragment();
+      for (const m of known) frag.appendChild(bubbleFor(m));
+      elThread.appendChild(frag);
+      // Only follow the conversation if you were already at the bottom —
+      // scrolling back through history must not get yanked away.
+      if (stick) elThread.scrollTop = elThread.scrollHeight;
+    }
 
-  function stopsUnread() {
-    return stops.reduce((t, s) => t + (stopKey(s.campaign, s.waId) !== stopSel ? (s.unread || 0) : 0), 0);
-  }
-
-  async function loadStops() {
-    try {
-      const res = await fetch('/api/chat/stopped');
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      stops = await res.json();
-      renderStops();
-      updateTitle();
-    } catch (err) {
-      stopSig = '';
-      stopsListEl.innerHTML = '<div class="error">Cannot load (' + esc(err.message) + ')</div>';
+    if (!list.length && !elThread.children.length) {
+      elThread.innerHTML = '<div class="blank">No messages in this conversation yet.</div>';
     }
   }
 
-  // A pane opened a lead: highlight it here if it is a stopped one. Otherwise
-  // drop the highlight if that pane was the one showing the highlighted lead.
-  const samePane = (a, b) => (a === FIXED) === (b === FIXED);
-
-  function onOpen(key, waId) {
-    const k = stopKey(key, waId);
-    const hit = stops.find((s) => stopKey(s.campaign, s.waId) === k);
-    const next = hit ? k : (stopSel && samePane(stopSel.split('|')[0], key) ? '' : stopSel);
-    if (hit) hit.unread = 0;
-    if (next !== stopSel || hit) { stopSel = next; renderStops(); updateTitle(); }
+  function updatePill() {
+    if (!elPill || !open) return;
+    const t = threads.get(waIdOf(open));
+    if (!t) return;
+    const left = t.windowOpen ? countdown(t.windowClosesAt) : null;
+    const label = t.windowOpen ? (left || 'open') : 'window closed';
+    if (elPill.textContent !== label) elPill.textContent = label;
   }
 
-  // LAST ATTEMPT leads open on the right, everything else on the left.
-  stopsListEl.addEventListener('click', async (e) => {
-    const row = e.target.closest('.stop');
-    if (!row || !panes.length) return;
-    const pane = row.dataset.key === FIXED ? panes[1] : panes[0];
-    if (await pane.show(row.dataset.key, row.dataset.num)) {
-      // Stacked on a narrow screen, the pane may be off-screen.
-      if (window.innerWidth < 1100) pane.root.scrollIntoView({ behavior: 'smooth' });
+  function paint(t) {
+    // Remount only when the conversation changed, or when the window opened or
+    // closed and the composer therefore has to appear or go away.
+    if (mounted !== open || mountedOpen !== t.windowOpen) mountChat(t);
+    syncMessages(t.messages);
+    updatePill();
+    if (elDraft) {
+      elDraft.disabled = sending;
+      elSend.disabled = sending;
+      elSend.textContent = sending ? 'Sending…' : 'Send';
+    }
+  }
+
+  function renderBlank() {
+    bodyEl.innerHTML = '<div class="blank">Pick a lead to open the conversation</div>';
+    forgetChrome();
+    mounted = mountedOpen = null;
+    nodes.clear();
+  }
+
+  let threadFails = 0;
+  let nextThreadPoll = 0;
+
+  async function loadThread(silent) {
+    if (!open) return;
+    const rid = open;
+    const waId = waIdOf(rid);
+
+    if (!silent && !threads.has(waId)) {
+      bodyEl.innerHTML = '<div class="loading">Loading conversation…</div>';
+      forgetChrome();
+      mounted = null;
+    }
+
+    try {
+      const res = await fetch('/api/chat/messages/' + encodeURIComponent(waId) + qsFor(rid));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const fresh = await res.json();
+
+      // A slow response for a lead you have already clicked away from must not
+      // overwrite the thread now on screen.
+      if (open !== rid) return;
+
+      threads.set(waId, fresh);
+      threadFails = 0;
+      nextThreadPoll = 0;
+      paint(fresh);
+      showError('');
+    } catch (err) {
+      // Back off instead of hammering a server that is already failing.
+      threadFails++;
+      nextThreadPoll = Date.now() + Math.min(10000 * 2 ** threadFails, 120000);
+      if (open !== rid) return;
+      if (threads.has(waId)) showError('Refresh failed (' + err.message + ') — retrying');
+      else bodyEl.innerHTML = '<div class="error">Cannot load the conversation (' + esc(err.message) + ')</div>';
+    }
+  }
+
+  function openLead(rid) {
+    open = rid;
+    // Clear the badge immediately; the server is told when the thread loads.
+    const lead = leadByRid(rid);
+    if (lead) lead.unread = 0;
+    document.body.classList.add('reading');
+    renderLeads();
+    updateTitle();
+
+    // Paint the cached copy first so switching back is instant, then refresh
+    // in the background.
+    const cached = threads.get(waIdOf(rid));
+    if (cached) { mounted = null; paint(cached); loadThread(true); }
+    else loadThread(false);
+
+    loadCrm(waIdOf(rid));
+  }
+
+  function closeLead() {
+    open = null;
+    document.body.classList.remove('reading', 'crm-on');
+    renderLeads();
+    renderBlank();
+    renderCrm();
+  }
+
+  async function doSend() {
+    const text = (elDraft?.value || '').trim();
+    if (!text || sending || !open) return;
+
+    const rid = open;
+    sending = true;
+    elDraft.disabled = true;
+    elSend.disabled = true;
+    elSend.textContent = 'Sending…';
+    showError('');
+
+    try {
+      const res = await fetch('/api/chat/send/' + encodeURIComponent(waIdOf(rid)) + qsFor(rid), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'HTTP ' + res.status);
+
+      sending = false;
+      if (open === rid && elDraft) { elDraft.value = ''; autosize(elDraft); }
+      // Re-read from WATI rather than faking the bubble, so what is on screen
+      // is what WATI accepted, with its real delivery status.
+      await loadThread(true);
+      if (open === rid && elDraft) elDraft.focus();
+    } catch (err) {
+      sending = false;
+      if (open === rid && elDraft) {
+        elDraft.disabled = false;
+        elSend.disabled = false;
+        elSend.textContent = 'Send';
+        elDraft.value = text;          // never lose what was typed
+        showError('Not sent: ' + err.message);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- bigin
+
+  const crmCache = new Map();     // waId -> payload
+
+  function sec(title, inner) {
+    return '<div class="crm-sec"><h3>' + title + '</h3>' + inner + '</div>';
+  }
+
+  function renderCrm() {
+    if (!open) { crmEl.innerHTML = ''; return; }
+    const bar = '<div class="crm-bar">Bigin<button class="crmclose" title="Close">&times;</button></div>';
+    const d = crmCache.get(waIdOf(open));
+
+    if (!d) { crmEl.innerHTML = bar + '<div class="crm-sec crm-empty">Loading Bigin…</div>'; return; }
+    if (d.configured === false) {
+      crmEl.innerHTML = bar + '<div class="crm-warn">Bigin is not configured — set ZOHO_CLIENT_ID, ' +
+        'ZOHO_CLIENT_SECRET and ZOHO_REFRESH_TOKEN in .env</div>';
+      return;
+    }
+    if (d.error) { crmEl.innerHTML = bar + '<div class="crm-warn">Bigin: ' + esc(d.error) + '</div>'; return; }
+    if (!d.found) {
+      crmEl.innerHTML = bar + '<div class="crm-sec crm-empty">No Bigin contact matches this number.</div>';
+      return;
+    }
+
+    const c = d.contact;
+    let html = bar +
+      '<div class="crm-head">' +
+        '<div class="nm">' + esc(c.name || 'Unnamed contact') + '</div>' +
+        '<div class="sub">' + esc(c.phone || '') +
+          (c.owner ? ' · owner ' + esc(c.owner) : '') + '</div>' +
+      '</div>';
+
+    if (d.duplicates > 1) {
+      html += '<div class="crm-warn">' + d.duplicates +
+        ' Bigin contacts share this number — showing the first.</div>';
+    }
+
+    if (c.fields.length) {
+      html += sec('Contact', c.fields.map((f) =>
+        '<div class="kv"><span class="k">' + esc(f.label) + '</span>' +
+        '<span class="v">' + esc(f.value) + '</span></div>').join(''));
+    }
+
+    html += sec('Pipelines' + (d.pipelines.length ? ' (' + d.pipelines.length + ')' : ''),
+      d.pipelines.length
+        ? d.pipelines.map((x) =>
+            '<div class="card2">' +
+              '<div class="top2"><strong>' + esc(x.name || 'Untitled') + '</strong>' +
+                (x.stage ? '<span class="tag stage">' + esc(x.stage) + '</span>' : '') + '</div>' +
+              (x.sub ? '<div class="by">' + esc(x.sub) + '</div>' : '') +
+              (x.closing ? '<div class="by">closes ' + esc(x.closing) + '</div>' : '') +
+            '</div>').join('')
+        : '<div class="crm-empty">No pipeline records.</div>');
+
+    html += sec('Call notes' + (d.calls.length ? ' (' + d.calls.length + ')' : ''),
+      d.calls.length
+        ? d.calls.map((x) => {
+            const inb = (x.type || '').toLowerCase() === 'inbound';
+            return '<div class="card2">' +
+              '<div class="top2">' +
+                '<span class="tag ' + (inb ? 'inb' : 'outb') + '">' + esc(x.type || 'call') + '</span>' +
+                (x.duration && x.duration !== '00:00'
+                  ? '<span class="tag">' + esc(x.duration) + '</span>' : '') +
+                '<span class="when">' + esc(dt(x.at)) + '</span></div>' +
+              (x.note
+                ? '<div class="body">' + esc(x.note) + '</div>'
+                : '<div class="crm-empty">No note</div>') +
+              (x.owner ? '<div class="by">' + esc(x.owner) + '</div>' : '') +
+            '</div>';
+          }).join('')
+        : '<div class="crm-empty">No calls logged.</div>');
+
+    html += sec('Notes' + (d.notes.length ? ' (' + d.notes.length + ')' : ''),
+      d.notes.length
+        ? d.notes.map((x) =>
+            '<div class="card2">' +
+              '<div class="top2"><span class="when">' + esc(dt(x.at)) + '</span></div>' +
+              '<div class="body">' + esc(x.text || x.title || '') + '</div>' +
+              (x.owner ? '<div class="by">' + esc(x.owner) + '</div>' : '') +
+            '</div>').join('')
+        : '<div class="crm-empty">No notes.</div>');
+
+    crmEl.innerHTML = html;
+  }
+
+  async function loadCrm(waId) {
+    if (crmCache.has(waId)) { renderCrm(); return; }
+    renderCrm();                                  // shows "Loading Bigin…"
+    try {
+      const res = await fetch('/api/chat/crm/' + encodeURIComponent(waId));
+      crmCache.set(waId, await res.json());
+    } catch (err) {
+      crmCache.set(waId, { configured: true, error: err.message });
+    }
+    if (open && waIdOf(open) === waId) renderCrm();
+  }
+
+  // --------------------------------------------------------------- events
+
+  function switchView(v) {
+    view = v;
+    store.set('chat.view', v);
+    leads = [];
+    listSig = '';
+    renderNav();
+    closeLead();
+    listsEl.innerHTML = '<div class="list"><div class="empty">Loading…</div></div>';
+    loadLeads();
+  }
+
+  navEl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-view]');
+    if (b && b.dataset.view !== view) switchView(b.dataset.view);
+  });
+
+  listsEl.addEventListener('click', (e) => {
+    // The tick is inside the row, so it has to opt out of opening the chat.
+    if (e.target.closest('.tickcell')) return;
+    const row = e.target.closest('.lead');
+    if (!row || row.dataset.rid === open) return;
+    openLead(row.dataset.rid);
+  });
+
+  // Shared by the list tick and the chat header's "Done" — one field, two
+  // places it can be changed, so they must not drift.
+  async function saveContacted(rid, want) {
+    const lead = leadByRid(rid);
+    if (lead) lead.contacted = want;
+    renderLeads();
+
+    // Keep the open conversation's header tick in step.
+    if (elTick && open === rid) elTick.checked = want;
+
+    try {
+      const res = await fetch('/api/chat/contacted/' + encodeURIComponent(waIdOf(rid)) + qsFor(rid), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contacted: want }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return true;
+    } catch {
+      // Put it back, so a failed save can never look like a saved one.
+      if (lead) lead.contacted = !want;
+      renderLeads();
+      if (elTick && open === rid) elTick.checked = !want;
+      return false;
+    }
+  }
+
+  listsEl.addEventListener('change', (e) => {
+    const box = e.target.closest('.leadtick');
+    if (box) saveContacted(box.dataset.rid, box.checked);
+  });
+
+  bodyEl.addEventListener('click', (e) => {
+    if (e.target.closest('.send')) return doSend();
+    if (e.target.closest('.back')) return closeLead();
+    if (e.target.closest('.crmbtn') && open) document.body.classList.toggle('crm-on');
+  });
+
+  crmEl.addEventListener('click', (e) => {
+    if (e.target.closest('.crmclose')) document.body.classList.remove('crm-on');
+  });
+
+  bodyEl.addEventListener('change', (e) => {
+    if (e.target.closest('.headtick') && open) saveContacted(open, e.target.checked);
+  });
+
+  bodyEl.addEventListener('keydown', (e) => {
+    if (e.target.tagName !== 'TEXTAREA') return;
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+  });
+
+  bodyEl.addEventListener('input', (e) => {
+    if (e.target.tagName === 'TEXTAREA') autosize(e.target);
+  });
+
+  // Sync: the poll keeps the conversation current, but Bigin edits sit behind a
+  // client cache and a server TTL, and a lead's newest message behind the 30s
+  // sweep. This drops all of it and re-reads on demand.
+  syncEl.addEventListener('click', async () => {
+    syncEl.disabled = true;
+    syncEl.textContent = 'Syncing…';
+    syncEl.classList.remove('ok');
+
+    const rid = open;
+    try {
+      // Nothing to ask the server to recompute: the webhook keeps the lead list
+      // current. Syncing is dropping what this browser is holding and re-reading.
+      crmCache.clear();
+      if (rid) threads.delete(waIdOf(rid));
+      listSig = '';
+
+      await loadLeads();
+
+      if (rid && open === rid) {
+        await loadThread(true);
+        await loadCrm(waIdOf(rid));
+      }
+
+      syncEl.classList.add('ok');
+      syncEl.textContent = 'Synced';
+    } catch (err) {
+      syncEl.textContent = 'Failed';
+      console.error('sync failed', err);
+    } finally {
+      syncEl.disabled = false;
+      setTimeout(() => { syncEl.textContent = 'Sync'; syncEl.classList.remove('ok'); }, 2000);
     }
   });
 
-  async function start() {
-    let all = [];
-    try {
-      const res = await fetch('/api/chat/campaigns');
-      if (res.ok) all = await res.json();
-    } catch { /* the panes still load with the defaults below */ }
+  let searchTimer;
+  searchEl.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderLeads, 140);
+  });
 
-    const others = all.filter((c) => c.key !== FIXED);
-    const fixed = all.find((c) => c.key === FIXED);
+  // -------------------------------------------------------------- polling
 
-    panes.push(createPane(document.getElementById('main'), {
-      title: 'Lead chat',
-      campaign: others.some((c) => c.key === 'jan2027') ? 'jan2027' : (others[0]?.key || 'jan2027'),
-      campaigns: others,
-      dashHref: '/dashboard3',
-    }));
+  // Polling a hidden tab burns WATI's rate limit for nobody's benefit, so the
+  // timers check first and a refresh fires the moment you come back.
+  function pollThread() {
+    if (document.hidden || !open || sending) return;
+    if (Date.now() < nextThreadPoll) return;
+    loadThread(true);
+  }
 
-    panes.push(createPane(document.getElementById('lastattempt'), {
-      title: fixed?.label || 'LAST ATTEMPT',
-      campaign: FIXED,
-      campaigns: null,
-      dashHref: '/dashboard',
-    }));
-
-    panes.forEach((p) => p.loadLeads());
-    loadStops();
+  function pollLeads() {
+    if (document.hidden) return;
+    loadLeads();
   }
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
-    panes.forEach((p) => p.resume());
-    loadStops();
+    nextThreadPoll = 0;
+    pollLeads();
+    pollThread();
   });
 
+  async function start() {
+    try {
+      const res = await fetch('/api/chat/campaigns');
+      if (res.ok) campaigns = await res.json();
+    } catch { /* tabs fall back to STOP only; the error shows on load */ }
+
+    // Opens on LAST ATTEMPT, or wherever you were last time.
+    const saved = store.get('chat.view');
+    if (saved === STOP || campaignOf(saved)) view = saved;
+    else if (!campaignOf(view) && campaigns[0]) view = campaigns[0].key;
+
+    renderNav();
+    renderBlank();
+    loadLeads();
+  }
+
   start();
-  setInterval(() => {
-    panes.forEach((p) => p.pollLeads());
-    if (!document.hidden) loadStops();
-  }, 30000);
-  setInterval(() => panes.forEach((p) => p.pollThread()), 10000);
+  setInterval(pollLeads, 30000);
+  setInterval(pollThread, 10000);
   // The pill is a clock, not data — tick it locally instead of refetching.
-  setInterval(() => panes.forEach((p) => p.updatePill()), 30000);
+  setInterval(updatePill, 30000);
 </script>
 </body>
 </html>
