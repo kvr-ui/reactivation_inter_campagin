@@ -92,7 +92,7 @@ const server = http.createServer(async (req, res) => {
   // tunnel like ngrok makes this server public. Through one, only the webhooks
   // are reachable — never the dashboards, or the chat, which can send messages.
   const local = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(req.headers.host || '');
-  if (!local && !/^\/(api\/)?webhook(\/caguru)?$/.test(pathname)) {
+  if (!local && !/^\/((api\/)?webhook(\/caguru)?|calc\/\d+)$/.test(pathname)) {
     res.writeHead(403, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Only the webhooks are reachable from outside this machine' }));
     return;
@@ -127,6 +127,10 @@ const server = http.createServer(async (req, res) => {
       const query = Object.fromEntries(new URL(req.url, 'http://x').searchParams);
       return webhook(...adapt(req, res, raw, { ...query, source: 'caguru' }));
     }
+
+    // The CA Guru bot's calculator link, rewritten as vercel.json does.
+    const calc = pathname.match(/^\/calc\/([^/]+)$/);
+    if (calc) return webhook(...adapt(req, res, raw, { source: 'calc', w: calc[1] }));
 
     // Everything else is webhook traffic — some providers verify with a GET.
     return webhook(...adapt(req, res, raw, {}));

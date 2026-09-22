@@ -241,6 +241,18 @@
   .window-pill.shut { background: #f6f8fa; color: #656d76; border: 1px solid #d0d7de; }
   .stop-pill { background: #ffebe9; color: #cf222e; border: 1px solid #ffb3ad; font-weight: 600; }
 
+  /* The lead opened the calculator link the CA Guru bot sent. Filled while
+     nobody has looked at the conversation since; outlined once someone has. */
+  .calc, .calc-pill {
+    white-space: nowrap; border-radius: 999px;
+    background: #fff8c5; color: #7d4e00; border: 1px solid #eac54f;
+  }
+  .calc { font-size: 10.5px; padding: 0 6px; }
+  .calc.new { background: #bf8700; color: #fff; border-color: #bf8700; font-weight: 700; }
+  .calc-pill { font-size: 12px; padding: 4px 10px; font-weight: 600; }
+  .lead.calcnew { background: #fffbe6; }
+  .lead.calcnew .lead-name { font-weight: 700; }
+
   .crmbtn {
     font-family: inherit; font-size: 12px;
     padding: 4px 10px;
@@ -519,7 +531,7 @@
   let listSig = '';             // last rendered lead-list signature
 
   // Live refs into the mounted chrome, so a poll never has to re-query them.
-  let elThread, elDraft, elSend, elPill, elErr, elTick;
+  let elThread, elDraft, elSend, elPill, elErr, elTick, elCalc;
 
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
     { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
@@ -601,6 +613,7 @@
     const named = (l.senderName || '').trim();
     const isOpen = new Date(l.windowClosesAt) > now;
     const unread = l.unread > 0 && l.rid !== open;
+    const calcNew = l.calcNew && l.rid !== open;
 
     // Preview the last message; prefix ours with "You:" so it is obvious at a
     // glance whether the ball is in your court.
@@ -610,7 +623,7 @@
       : '<span class="from">+' + esc(l.waId) + '</span>';
 
     return '<div class="lead' + (l.rid === open ? ' on' : '') + (l.contacted ? ' done' : '') +
-           (unread ? ' unread' : '') + '" data-rid="' + esc(l.rid) + '">' +
+           (unread ? ' unread' : '') + (calcNew ? ' calcnew' : '') + '" data-rid="' + esc(l.rid) + '">' +
       '<label class="tickcell" title="Mark this lead contacted">' +
         '<input type="checkbox" class="leadtick" data-rid="' + esc(l.rid) + '"' +
         (l.contacted ? ' checked' : '') + ' aria-label="Mark contacted"></label>' +
@@ -623,9 +636,16 @@
       '<span class="lead-right">' +
         '<span class="lead-when">' + esc(shortWhen(view === STOP ? (l.stoppedAt || l.lastAt) : l.lastAt)) + '</span>' +
         (showCamp ? '<span class="camp">' + esc(l.campaignLabel || '') + '</span>' : '') +
+        (l.calcClickedAt ? '<span class="calc' + (calcNew ? ' new' : '') + '" title="' +
+          esc(calcTitle(l)) + '">🧮 Clicked calculator</span>' : '') +
         (unread ? '<span class="badge">' + (l.unread > 20 ? '20+' : l.unread) + '</span>' : '') +
       '</span>' +
     '</div>';
+  }
+
+  function calcTitle(l) {
+    return 'Opened the calculator link' +
+      (l.calcClicks > 1 ? ' ' + l.calcClicks + ' times, last ' : ' ') + dt(l.calcClickedAt);
   }
 
   // Rows rebuilt on every keystroke and every 30s poll is pure waste, and it
@@ -637,7 +657,8 @@
 
     const sig = view + '|' + open + '|' + q + '|' + gs.map((g) => g.rows.map((l) =>
       l.rid + (l.contacted ? '1' : '0') + (new Date(l.windowClosesAt) > now ? 'o' : 's') +
-      l.lastAt + '|' + (l.unread || 0) + '|' + (l.lastText || '')
+      l.lastAt + '|' + (l.unread || 0) + '|' + (l.lastText || '') + '|' +
+      (l.calcClickedAt || '') + (l.calcNew ? 'n' : '')
     ).join(',')).join('#');
     if (sig === listSig) return;
     listSig = sig;
@@ -669,7 +690,7 @@
   // window is in the background — which is exactly when a reply arrives.
   function updateTitle() {
     const inView = view === STOP ? leads : leads.filter((l) => !l.stopped);
-    const n = inView.reduce((t, l) => t + (l.rid !== open ? (l.unread || 0) : 0), 0);
+    const n = inView.reduce((t, l) => t + (l.rid !== open ? (l.unread || 0) + (l.calcNew ? 1 : 0) : 0), 0);
     const title = n ? '(' + n + ') Lead chat' : 'Lead chat';
     if (document.title !== title) document.title = title;
   }
@@ -691,6 +712,7 @@
       leads = fresh;
       renderLeads();
       updateTitle();
+      updateCalcPill();
     } catch (err) {
       if (v !== view) return;
       listSig = '';
@@ -712,7 +734,7 @@
   }
 
   function forgetChrome() {
-    elThread = elDraft = elSend = elPill = elErr = elTick = null;
+    elThread = elDraft = elSend = elPill = elErr = elTick = elCalc = null;
   }
 
   const qsFor = (rid) => '?campaign=' + encodeURIComponent(keyOf(rid));
@@ -732,6 +754,7 @@
         '<div class="ph">+' + esc(lead.waId) +
           (view === STOP && camp ? ' · ' + esc(camp.label) : '') + '</div></span>' +
         (lead.stopped ? '<span class="stop-pill" title="This lead replied STOP">Replied STOP</span>' : '') +
+        '<span class="calc-pill" hidden></span>' +
         '<span class="window-pill ' + (t.windowOpen ? 'open' : 'shut') + '"></span>' +
         '<button class="crmbtn" title="Show this contact in Bigin">Bigin</button>' +
         '<label class="tickwrap"><input type="checkbox" class="headtick"' +
@@ -754,6 +777,7 @@
     elPill   = bodyEl.querySelector('.window-pill');
     elErr    = bodyEl.querySelector('.error');
     elTick   = bodyEl.querySelector('.headtick');
+    elCalc   = bodyEl.querySelector('.calc-pill');
 
     if (elDraft && draft) { elDraft.value = draft; autosize(elDraft); }
 
@@ -860,12 +884,26 @@
     if (elPill.textContent !== label) elPill.textContent = label;
   }
 
+  // Refreshed from the lead list, which is where a click shows up — a lead can
+  // open the link while their conversation is already on screen.
+  function updateCalcPill() {
+    if (!elCalc || !open) return;
+    const lead = openLead_();
+    const at = lead && lead.calcClickedAt;
+    elCalc.hidden = !at;
+    if (!at) return;
+    const label = '🧮 Clicked calculator · ' + dt(at) + (lead.calcClicks > 1 ? ' (×' + lead.calcClicks + ')' : '');
+    if (elCalc.textContent !== label) elCalc.textContent = label;
+    elCalc.title = calcTitle(lead);
+  }
+
   function paint(t) {
     // Remount only when the conversation changed, or when the window opened or
     // closed and the composer therefore has to appear or go away.
     if (mounted !== open || mountedOpen !== t.windowOpen) mountChat(t);
     syncMessages(t.messages);
     updatePill();
+    updateCalcPill();
     if (elDraft) {
       elDraft.disabled = sending;
       elSend.disabled = sending;
@@ -922,7 +960,7 @@
     open = rid;
     // Clear the badge immediately; the server is told when the thread loads.
     const lead = leadByRid(rid);
-    if (lead) lead.unread = 0;
+    if (lead) { lead.unread = 0; lead.calcNew = false; }
     document.body.classList.add('reading');
     renderLeads();
     updateTitle();

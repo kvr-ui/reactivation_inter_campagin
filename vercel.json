@@ -10,6 +10,10 @@
       "destination": "/api/webhook?source=caguru"
     },
     {
+      "source": "/calc/:waId",
+      "destination": "/api/webhook?source=calc&w=:waId"
+    },
+    {
       "source": "/dashboard",
       "destination": "/index.html"
     },

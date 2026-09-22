@@ -8,6 +8,7 @@
 const { saveReply } = require('../lib/leads');
 const { recordMessage } = require('../lib/activity');
 const caguruWebhook = require('../lib/caguru-webhook');
+const calculatorClick = require('../lib/calculator');
 
 // Vercel parses JSON and form bodies for us, but WATI's content-type isn't
 // guaranteed, so accept a raw string too.
@@ -24,6 +25,8 @@ function asPayload(body) {
 module.exports = async function handler(req, res) {
   // CA Guru's provider, not WATI — /webhook/caguru rewrites here with this tag.
   if (req.query?.source === 'caguru') return caguruWebhook(req, res);
+  // The CA Guru bot's calculator link — /calc/<waId> rewrites here.
+  if (req.query?.source === 'calc') return calculatorClick(req, res);
 
   const time = new Date().toISOString();
 

@@ -196,6 +196,14 @@
   }
   input[type=checkbox]:disabled { cursor: default; opacity: .5; }
 
+  /* Whether the lead opened the calculator link the bot sent them. */
+  .calc { white-space: nowrap; font-size: 13px; }
+  .calc .yes {
+    padding: 1px 8px; border-radius: 999px;
+    background: #fff8c5; color: #7d4e00; border: 1px solid #eac54f; font-weight: 600;
+  }
+  .calc .no { color: #8c959f; }
+
   /* A contacted lead stays readable but visibly settled. */
   tr.done .name, tr.done .phone { color: #8c959f; text-decoration: line-through; }
   tr.done { background: #fbfcfd; }
@@ -225,8 +233,8 @@
   button:disabled { opacity: .55; cursor: default; background: #fff; }
 
   @media (max-width: 560px) {
-    .date { display: none; }
-    th.date-col { display: none; }
+    .date, .calc { display: none; }
+    th.date-col, th.calc-col { display: none; }
   }
 
   /* Campaign switcher: the two dashboards read different databases, so make
@@ -298,6 +306,7 @@
           <th>Name</th>
           <th>Phone number</th>
           <th class="date-col">Received</th>
+          <th class="calc-col" title="Opened the calculator link the bot sent">Calculator</th>
           <th></th>
         </tr>
       </thead>
@@ -382,6 +391,10 @@
         '<td class="name' + (named ? '' : ' unknown') + '">' + esc(named || 'Unknown') + '</td>' +
         '<td class="phone">+' + esc(l.waId) + '</td>' +
         '<td class="date">' + esc(fmtDate(l.receivedAt)) + '</td>' +
+        '<td class="calc">' + (l.calcClickedAt
+          ? '<span class="yes" title="' + (l.calcClicks > 1 ? l.calcClicks + ' clicks, last ' : '') +
+            esc(fmtDate(l.calcClickedAt)) + '">🧮 Clicked · ' + esc(fmtDate(l.calcClickedAt)) + '</span>'
+          : '<span class="no">—</span>') + '</td>' +
         '<td class="actions"><div class="btns">' +
           '<button class="copy" data-num="' + esc(l.waId) + '">Copy</button>' +
           '<button class="del" data-num="' + esc(l.waId) + '"' +

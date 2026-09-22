@@ -42,6 +42,7 @@ first.
 | `api/leads/*`               | Campaign 1 endpoints                                            |
 | `api/leads2/*`              | Campaign 2 endpoints                                            |
 | `api/leads3/*`              | Campaign 3 endpoints                                            |
+| `lib/calculator.js`         | `GET /calc/<waId>` — records a CA Guru lead's calculator click, then redirects to `CALCULATOR_URL` (default focasleadcalculator.vercel.app) |
 | `lib/campaigns.js`          | The keyword → database table; the one place campaigns are defined |
 | `lib/mongo.js`              | Cached Atlas client **per campaign**                            |
 | `lib/leads.js`              | All read/write logic, shared by every route                     |

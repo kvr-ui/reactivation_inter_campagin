@@ -1,7 +1,7 @@
 // Gates the whole deployment behind the shared password.
 //
-// Everything is protected except the webhooks, the login page and the login
-// endpoint. The webhooks (WATI's, and CA Guru's own provider's) are excluded
+// Everything is protected except the webhooks, the calculator link the CA Guru
+// bot sends leads (/calc/<waId>), the login page and the login endpoint. The webhooks (WATI's, and CA Guru's own provider's) are excluded
 // because neither can send a cookie and a 401 there would stop lead capture
 // without any visible error.
 
@@ -26,7 +26,7 @@ export default async function middleware(request) {
   // No password configured means the gate is off, so a missing env var can
   // never lock the team out of their own tool.
   if (!auth.enabled()) return;
-  if (OPEN.has(path)) return;
+  if (OPEN.has(path) || path.startsWith('/calc/')) return;
 
   const token = auth.readCookie(request.headers.get('cookie'), auth.COOKIE);
   if (await auth.verifyToken(token)) return;
