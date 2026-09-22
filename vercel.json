@@ -6,6 +6,10 @@
       "destination": "/api/webhook"
     },
     {
+      "source": "/webhook/caguru",
+      "destination": "/api/webhook?source=caguru"
+    },
+    {
       "source": "/dashboard",
       "destination": "/index.html"
     },
@@ -18,12 +22,20 @@
       "destination": "/dashboard3.html"
     },
     {
+      "source": "/caguru",
+      "destination": "/caguru.html"
+    },
+    {
       "source": "/chat",
       "destination": "/chat.html"
     },
     {
       "source": "/login",
       "destination": "/login.html"
+    },
+    {
+      "source": "/api/leads4/(.*)",
+      "destination": "/api/leads4?waId=$1"
     },
     {
       "source": "/api/chat/(.*)",

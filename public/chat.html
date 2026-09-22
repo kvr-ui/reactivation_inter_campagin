@@ -471,7 +471,7 @@
   <div class="nav" id="nav"></div>
   <div class="tools">
     <input type="search" id="search" placeholder="Search name or number" autocomplete="off">
-    <button class="sync" id="sync" title="Re-read everything from WATI and Bigin now">Sync</button>
+    <button class="sync" id="sync" title="Re-read everything from WhatsApp and Bigin now">Sync</button>
     <a href="/dashboard" class="dashlink" id="dashlink">Dashboards &rarr;</a>
   </div>
 </div>
@@ -494,7 +494,9 @@
   // The tab that is not a campaign: everyone who replied STOP, from all of them.
   const STOP = 'stop';
 
-  const DASHBOARDS = { reactivation: '/dashboard', questionbank: '/dashboard2', jan2027: '/dashboard3' };
+  const DASHBOARDS = {
+    reactivation: '/dashboard', questionbank: '/dashboard2', jan2027: '/dashboard3', caguru: '/caguru',
+  };
 
   let campaigns = [];           // from /api/chat/campaigns
   let view = 'reactivation';    // a campaign key, or STOP

@@ -16,7 +16,7 @@
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const { leadsCollection } = require(path.join(ROOT, 'lib/mongo'));
-const { CAMPAIGNS } = require(path.join(ROOT, 'lib/campaigns'));
+const { watiCampaigns } = require(path.join(ROOT, 'lib/campaigns'));
 const { isStop } = require(path.join(ROOT, 'lib/activity'));
 
 const argv = process.argv.slice(2);
@@ -24,7 +24,7 @@ const arg = (n) => { const i = argv.indexOf(n); return i === -1 ? null : argv[i 
 const has = (n) => argv.includes(n);
 
 const WRITE = has('--write');
-const KEYS = has('--all') ? Object.keys(CAMPAIGNS) : [arg('--campaign') || 'jan2027'];
+const KEYS = has('--all') ? watiCampaigns().map((c) => c.key) : [arg('--campaign') || 'jan2027'];
 
 const BASE = (process.env.WATI_API_ENDPOINT || process.env.WATI_API_URL || '').replace(/\/+$/, '');
 const TOKEN = (process.env.WATI_API_TOKEN || process.env.WATI_TOKEN || '').replace(/^Bearer\s+/i, '');

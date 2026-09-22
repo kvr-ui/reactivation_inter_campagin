@@ -1,8 +1,9 @@
 // Gates the whole deployment behind the shared password.
 //
-// Everything is protected except the webhook, the login page and the login
-// endpoint. The webhook is excluded because WATI cannot send a cookie and a
-// 401 there would stop lead capture without any visible error.
+// Everything is protected except the webhooks, the login page and the login
+// endpoint. The webhooks (WATI's, and CA Guru's own provider's) are excluded
+// because neither can send a cookie and a 401 there would stop lead capture
+// without any visible error.
 
 import auth from './lib/auth.js';
 
@@ -12,7 +13,11 @@ export const config = {
   matcher: '/((?!_next|favicon.ico).*)',
 };
 
-const OPEN = new Set(['/login', '/login.html', '/api/login', '/api/logout', '/api/webhook', '/webhook']);
+const OPEN = new Set([
+  '/login', '/login.html', '/api/login', '/api/logout',
+  '/api/webhook', '/webhook',
+  '/webhook/caguru',
+]);
 
 export default async function middleware(request) {
   const url = new URL(request.url);

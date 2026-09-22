@@ -7,6 +7,7 @@
 
 const { saveReply } = require('../lib/leads');
 const { recordMessage } = require('../lib/activity');
+const caguruWebhook = require('../lib/caguru-webhook');
 
 // Vercel parses JSON and form bodies for us, but WATI's content-type isn't
 // guaranteed, so accept a raw string too.
@@ -21,6 +22,9 @@ function asPayload(body) {
 }
 
 module.exports = async function handler(req, res) {
+  // CA Guru's provider, not WATI — /webhook/caguru rewrites here with this tag.
+  if (req.query?.source === 'caguru') return caguruWebhook(req, res);
+
   const time = new Date().toISOString();
 
   console.log(`[${time}] ${req.method} ${req.url}`);
