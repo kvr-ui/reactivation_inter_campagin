@@ -19,7 +19,11 @@ const { CAMPAIGNS } = require('../lib/campaigns');
 
 async function ensure(campaignKey) {
   const replies = await leadsCollection(campaignKey);
-  const existing = await replies.indexes();
+  // A campaign nobody has tapped yet has no collection; createIndex makes it.
+  const existing = await replies.indexes().catch((err) => {
+    if (err.code === 26) return []; // NamespaceNotFound
+    throw err;
+  });
 
   // One row per lead. A lead who taps the button twice must not appear twice,
   // so waId — not whatsappMessageId — is the identity. An earlier build indexed
