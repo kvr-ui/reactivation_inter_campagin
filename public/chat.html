@@ -107,10 +107,11 @@
     background: #fff;
     border-right: 1px solid #d0d7de;
   }
-  /* Two lists side by side (LAST ATTEMPT and LAST ATTEMPT 2) get a little
-     narrower each so the chat keeps its room. */
+  /* Lists side by side (LAST ATTEMPT, 2 and 3) get a little narrower each so
+     the chat keeps its room. */
   .lists.two .list { width: 290px; }
-  .lists.two .list + .list { border-left: 2px solid #d0d7de; }
+  .lists.three .list { width: 260px; }
+  .lists.two .list + .list, .lists.three .list + .list { border-left: 2px solid #d0d7de; }
 
   .list-head {
     padding: 10px 14px 8px;
@@ -128,6 +129,10 @@
   .list.wave2 .list-head { background: #fff8f1; }
   .list.wave2 .list-head .t::before {
     content: ""; width: 8px; height: 8px; border-radius: 50%; background: #bc4c00;
+  }
+  .list.wave3 .list-head { background: #f3f8ff; }
+  .list.wave3 .list-head .t::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%; background: #0969da;
   }
   .list.stopped .list-head { background: #fff5f5; }
   .list.stopped .list-head .t::before {
@@ -467,8 +472,8 @@
   @media (max-width: 1000px) {
     .app { grid-template-columns: 1fr; }
     .lists { flex-direction: column; }
-    .list, .lists.two .list { width: auto; flex: 1; border-right: 0; }
-    .lists.two .list + .list { border-left: 0; border-top: 2px solid #d0d7de; }
+    .list, .lists.two .list, .lists.three .list { width: auto; flex: 1; border-right: 0; }
+    .lists.two .list + .list, .lists.three .list + .list { border-left: 0; border-top: 2px solid #d0d7de; }
     body.reading .lists { display: none; }
     body:not(.reading) .chat { display: none; }
     .back { display: inline-block; }
@@ -591,19 +596,24 @@
     return !q || (l.senderName || '').toLowerCase().includes(q) || l.waId.includes(q);
   }
 
-  // The columns the current view is split into. A campaign with a second wave
-  // (LAST ATTEMPT) shows its earlier leads and its new tappers side by side.
+  // The columns the current view is split into. A campaign with resend waves
+  // (LAST ATTEMPT) shows each wave's tappers side by side.
   function groups() {
     if (view === STOP) {
       return [{ cls: 'stopped', title: 'Replied STOP', sub: 'Every campaign', rows: leads, showCamp: true }];
     }
     const inbox = leads.filter((l) => !l.stopped);
     const c = campaignOf(view);
-    if (c && c.secondWave) {
-      const from = new Date(c.secondWave.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    if (c && c.waves && c.waves.length) {
+      const day = (w) => new Date(w.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
       return [
-        { cls: '', title: c.label, sub: 'Tapped before ' + from, rows: inbox.filter((l) => l.wave !== 2) },
-        { cls: 'wave2', title: c.secondWave.label, sub: 'Tapped since ' + from, rows: inbox.filter((l) => l.wave === 2) },
+        { cls: '', title: c.label, sub: 'Tapped before ' + day(c.waves[0]), rows: inbox.filter((l) => l.wave === 1) },
+        ...c.waves.map((w, i) => ({
+          cls: 'wave' + (i + 2),
+          title: w.label,
+          sub: c.waves[i + 1] ? day(w) + ' – ' + day(c.waves[i + 1]) : 'Tapped since ' + day(w),
+          rows: inbox.filter((l) => l.wave === i + 2),
+        })),
       ];
     }
     return [{ cls: '', title: c ? c.label : view, sub: '', rows: inbox }];
@@ -667,6 +677,7 @@
     const scrolls = [...listsEl.querySelectorAll('.leads')].map((el) => el.scrollTop);
 
     listsEl.classList.toggle('two', gs.length === 2);
+    listsEl.classList.toggle('three', gs.length >= 3);
     listsEl.innerHTML = gs.map((g) => {
       const shown = g.rows.filter((l) => matches(l, q));
       const inWindow = g.rows.reduce((n, l) => n + (new Date(l.windowClosesAt) > now ? 1 : 0), 0);
@@ -716,7 +727,7 @@
     } catch (err) {
       if (v !== view) return;
       listSig = '';
-      listsEl.classList.remove('two');
+      listsEl.classList.remove('two', 'three');
       listsEl.innerHTML = '<div class="list"><div class="error">Cannot load leads (' +
         esc(err.message) + ')</div></div>';
     }
