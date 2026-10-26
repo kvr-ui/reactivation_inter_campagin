@@ -7,6 +7,7 @@
 
 const { saveReply } = require('../lib/leads');
 const { recordMessage } = require('../lib/activity');
+const { sendAutoReply } = require('../lib/auto-reply');
 const caguruWebhook = require('../lib/caguru-webhook');
 const calculatorClick = require('../lib/calculator');
 
@@ -43,6 +44,14 @@ module.exports = async function handler(req, res) {
       // A DB failure must not make WATI think delivery failed — it would retry
       // the same event forever. Log it and still acknowledge.
       console.error('--- mongo write failed ---', err.message);
+    }
+
+    // Campaigns with an autoReply (RTI) answer the tap themselves. Its own
+    // try, for the same reason as below: a failed send must not fail the save.
+    try {
+      await sendAutoReply(payload);
+    } catch (err) {
+      console.error('--- auto reply failed ---', err.message);
     }
 
     // Additive, and deliberately in its own try: recording the preview and
